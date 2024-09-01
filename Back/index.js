@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
-// const fileRoutes = require('./routes/fileRoutes');
+const fileRoutes = require('./routes/fileRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 // const paymentRoutes = require('./routes/paymentRoutes');
 require('dotenv').config();
 
@@ -10,6 +11,8 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/admin', adminRoutes);
 // app.use('/api/files', fileRoutes);
 // app.use('/api/payments', paymentRoutes);
 
