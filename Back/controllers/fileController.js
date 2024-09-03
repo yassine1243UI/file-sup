@@ -62,3 +62,62 @@ exports.uploadFile = (req, res) => {
         
     });
 };
+
+
+exports.getUserFiles = (req, res) => {
+    const sql = 'SELECT * FROM files WHERE user_id = ? AND is_deleted = 0';
+    db.query(sql, [req.user.user_id], (err, result) => {
+        if (err) {
+            console.log("Database error: ", err);
+            return res.status(500).json({ message: 'Error fetching files' });
+        }
+        res.status(200).json(result);  // Return the list of files
+    });
+};
+
+
+exports.renameFile = (req, res) => {
+    const { newFileName } = req.body;
+    const fileId = req.params.id;
+
+    const sql = 'UPDATE files SET file_name = ? WHERE file_id = ? AND user_id = ?';
+    db.query(sql, [newFileName, fileId, req.user.user_id], (err, result) => {
+        if (err) {
+            console.log("Database error: ", err);
+            return res.status(500).json({ message: 'Error renaming file' });
+        }
+        res.status(200).json({ message: 'File renamed successfully' });
+    });
+};
+
+
+exports.deleteFile = (req, res) => {
+    const fileId = req.params.id;
+
+    const sql = 'UPDATE files SET is_deleted = 1 WHERE file_id = ? AND user_id = ?';
+    db.query(sql, [fileId, req.user.user_id], (err, result) => {
+        if (err) {
+            console.log("Database error: ", err);
+            return res.status(500).json({ message: 'Error deleting file' });
+        }
+        res.status(200).json({ message: 'File deleted successfully' });
+    });
+};
+
+
+
+
+exports.downloadFile = (req, res) => {
+    const fileId = req.params.id;
+
+    const sql = 'SELECT * FROM files WHERE file_id = ? AND user_id = ? AND is_deleted = 0';
+    db.query(sql, [fileId, req.user.user_id], (err, result) => {
+        if (err || result.length === 0) {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        const file = result[0];
+        const filePath = path.join(__dirname, '..', file.path);
+        res.download(filePath);  // This will trigger the file download
+    });
+};
