@@ -29,39 +29,39 @@ const upload = multer({
 
 // File upload handler
 exports.uploadFile = (req, res) => {
-    // Perform the file upload
-    upload(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            // Handle Multer-specific errors
-            console.log("Multer error: ", err);
-            return res.status(500).json({ message: `Multer error: ${err.message}` });
-        } else if (err) {
-            // Handle general errors (e.g., file system errors)
-            console.log("General error: ", err);
-            return res.status(500).json({ message: `Error uploading file: ${err.message}` });
-        }
+    const userId = req.user.user_id;
 
-        // If no file is provided
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file provided' });
-        }
-
-        // File upload was successful, now save file metadata to the database
-        const file = req.file;
-        console.log("Uploaded file details: ", file);  // Log file details for debugging
-
-        const sql = 'INSERT INTO files (user_id, file_name, file_size, file_type, path) VALUES (?, ?, ?, ?, ?)';
-        db.query(sql, [req.user.user_id, file.filename, file.size, file.mimetype, file.path], (err, result) => {
-            if (err) {
-                console.log("Database error: ", err);  // Log the database error for debugging
-                return res.status(500).json({ message: 'Error saving file info' });
-            }
+    // Check if the user has enough storage space
+    const checkStorageSql = 'SELECT storage_used, storage_limit FROM users WHERE user_id = ?';
+    db.query(checkStorageSql, [userId], (err, result) => {
+        if (err) return res.status(500).json({ message: 'Error fetching user storage info' });
         
-            res.status(201).json({ message: 'File uploaded successfully', file: file });
+        const { storage_used, storage_limit } = result[0];
+        const fileSize = req.file.size;  // Get the size of the file being uploaded
+
+        if (storage_used + fileSize > storage_limit * 1024 * 1024) {
+            return res.status(400).json({ message: 'Storage limit exceeded' });
+        }
+
+        // Proceed with file upload if storage limit is not exceeded
+        upload(req, res, function (err) {
+            if (err) return res.status(500).json({ message: 'Error uploading file' });
+
+            const file = req.file;
+
+            // Update the user's storage_used after the file is uploaded
+            const updateStorageSql = 'UPDATE users SET storage_used = storage_used + ? WHERE user_id = ?';
+            db.query(updateStorageSql, [file.size, userId], (err) => {
+                if (err) {
+                    console.log("Error updating user storage: ", err);
+                }
+            });
+
+            res.status(201).json({ message: 'File uploaded successfully' });
         });
-        
     });
 };
+
 
 
 exports.getUserFiles = (req, res) => {
