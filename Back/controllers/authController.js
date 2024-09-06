@@ -13,7 +13,9 @@ const transporter = nodemailer.createTransport({
         pass: 'rpzrsrrqodxxgfay'
     }
 });
-const sendEmail = async (email, subject, text) => {
+const sendEmail = async (email, subject, name, plan, amountPaid, storageLimit) => {
+    const text = `Hello ${name},\n\nThank you for registering at FileSup. Your payment of €${amountPaid} for the ${plan} plan with ${storageLimit} MB of storage has been successfully processed.\n\nWelcome aboard,\nFileSup Team`;
+
     const mailOptions = {
         from: 'Fayesarah98@gmail.com',
         to: email,
@@ -63,7 +65,15 @@ exports.signup = async (req, res) => {
         await db.query('INSERT INTO users (name, email, password_hash, phone, billing_address, plan) VALUES (?, ?, ?, ?, ?, ?)',
                        [name, email, hashedPassword, phone, billing_address, plan]);
                        console.log('User created successfully');
-                       sendEmail(email, 'Payment Successful', 'Thank you for your payment.');
+                    //    sendEmail(email, 'Confirmation of Your Registration', name, plan, (selectedPlan.price).toFixed(2), selectedPlan.storageLimit);
+                    sendEmail(
+                        email, 
+                        'Confirmation of Your Registration', 
+                        name, 
+                        plan, 
+                        selectedPlan.price.toFixed(2), 
+                        selectedPlan.storageLimit
+                    );
         res.status(201).json({ message: 'Signup and payment successful', clientSecret: paymentIntent.client_secret });
     } catch (error) {
         console.error('Signup/payment error:', error);
