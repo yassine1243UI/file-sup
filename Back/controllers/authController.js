@@ -7,59 +7,45 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // Create Stripe payment intent with no redirect-based payment methods
 exports.signup = async (req, res) => {
     const { name, email, password, phone, billing_address, plan } = req.body;
-    
-    // Check if user already exists
-    const checkUserQuery = 'SELECT * FROM users WHERE email = ?';
-    db.query(checkUserQuery, [email], async (err, result) => {
-        if (result.length) return res.status(400).json({ message: 'User already exists' });
+    try {
+        // Check if user already exists
+        console.log('Checking if user exists with email:', email);
+        const [userExists] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        console.log('Query result:', userExists);
+        if (userExists.length > 0) {
+            console.log('User already exists, cannot proceed with signup.');
+            return res.status(400).json({ message: 'User already exists' });
+        }
+        
 
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // Define plans with updated base plan price
-        const plans = {
-            base: { storageLimit: 20480, price: 20 },  // 20 GB for €20
-            premium: { storageLimit: 51200, price: 50 },  // 50 GB for €50
-            pro: { storageLimit: 102400, price: 100 }  // 100 GB for €100
-        };
-
+        // Define plans and create payment intent
+        const plans = { base: { storageLimit: 20480, price: 20 }, premium: { storageLimit: 51200, price: 50 }, pro: { storageLimit: 102400, price: 100 } };
         const selectedPlan = plans[plan];
         if (!selectedPlan) {
             return res.status(400).json({ message: 'Invalid plan selected' });
         }
 
-        try {
-            // Create Stripe payment intent without redirect-based payment methods
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: selectedPlan.price * 100,  // Price in cents
-                currency: 'eur',
-                payment_method_types: ['card'],
-                automatic_payment_methods: {
-                    enabled: true,
-                    allow_redirects: 'never'
-                },
-                metadata: {
-                    name: name,
-                    email: email,
-                    storageLimit: selectedPlan.storageLimit,
-                    phone: phone,
-                    billing_address: JSON.stringify(billing_address)
-                }
-            });
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: selectedPlan.price * 100, // Price in cents
+            currency: 'eur',
+            payment_method_types: ['card'],
+            metadata: { name, email, phone, billing_address: JSON.stringify(billing_address) }
+        });
 
-            res.status(200).json({
-                message: 'Payment intent created successfully, no redirection required.',
-                // clientSecret: paymentIntent.client_secret  // You might want to handle this differently depending on your security setup
-            });
-        } catch (err) {
-            console.log("Error creating payment intent: ", err);
-            res.status(500).json({
-                message: 'Error creating payment intent',
-                error: err.message
-            });
-        }
-    });
+        // Insert user into database
+        await db.query('INSERT INTO users (name, email, password_hash, phone, billing_address, plan) VALUES (?, ?, ?, ?, ?, ?)',
+                       [name, email, hashedPassword, phone, billing_address, plan]);
+                       console.log('User created successfully');
+        res.status(201).json({ message: 'Signup and payment successful', clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+        console.error('Signup/payment error:', error);
+        res.status(500).json({ message: 'Error in signup/payment process', error: error.message });
+    }
 };
+
 
 
 // Handle payment success and complete the registration
