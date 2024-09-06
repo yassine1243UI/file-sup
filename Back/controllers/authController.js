@@ -2,9 +2,33 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const nodemailer = require('nodemailer');
 
-// Signup user with plan selection and Stripe payment intent creation
-// Create Stripe payment intent with no redirect-based payment methods
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com", 
+    port: 587,
+    secure: false, // Note: pour Gmail, `secure` est false pour le port 587, true pour le port 465
+    auth: {
+        user: 'fayesarah98@gmail.com',
+        pass: 'rpzrsrrqodxxgfay'
+    }
+});
+const sendEmail = async (email, subject, text) => {
+    const mailOptions = {
+        from: 'Fayesarah98@gmail.com',
+        to: email,
+        subject: subject,
+        text: text
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log('Email send error:', error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+};
 exports.signup = async (req, res) => {
     const { name, email, password, phone, billing_address, plan } = req.body;
     try {
@@ -39,6 +63,7 @@ exports.signup = async (req, res) => {
         await db.query('INSERT INTO users (name, email, password_hash, phone, billing_address, plan) VALUES (?, ?, ?, ?, ?, ?)',
                        [name, email, hashedPassword, phone, billing_address, plan]);
                        console.log('User created successfully');
+                       sendEmail(email, 'Payment Successful', 'Thank you for your payment.');
         res.status(201).json({ message: 'Signup and payment successful', clientSecret: paymentIntent.client_secret });
     } catch (error) {
         console.error('Signup/payment error:', error);
