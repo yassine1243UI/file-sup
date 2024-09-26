@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { TextField, Button, Grid, MenuItem, Typography, Container, Paper } from '@mui/material';
 
 function PaymentForm() {
     const stripe = useStripe();
@@ -13,8 +14,7 @@ function PaymentForm() {
     const [billingAddressState, setBillingAddressState] = useState('');
     const [billingAddressPostalCode, setBillingAddressPostalCodes] = useState('');
     const [billingAddressCountry, setBillingAddressCountry] = useState('');
-    const [plan, setPlan] = useState('base'); // Default plan
-
+    const [plan, setPlan] = useState('base');
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -34,56 +34,134 @@ function PaymentForm() {
             alert('Payment failed: ' + error.message);
         } else {
             console.log('[PaymentMethod]', paymentMethod);
-            // Now send paymentMethod.id along with user data to your backend
-            fetch('http://localhost:5000/api/auth/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password,
-                    phone,
-                    billingAddress: {
-                        address: billingAddress,
-                        city: billingAddressCity,
-                        state: billingAddressState,
-                        postalCode: billingAddressPostalCode,
-                        country: billingAddressCountry
-                    },
-                    plan,
-                    paymentMethodId: paymentMethod.id
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('Signup successful: ' + data.message);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error in signup/payment process');
-            });
+            // Process payment and signup
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Name" required />
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" required />
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required />
-            <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone" required />
-            <textarea value={billingAddress} onChange={e => setBillingAddress(e.target.value)} placeholder="Billing Address" required />
-            <textarea value={billingAddressCity} onChange={e => setBillingAddressCity(e.target.value)} placeholder="Billing City" required />
-            <textarea value={billingAddressPostalCode} onChange={e => setBillingAddressPostalCodes(e.target.value)} placeholder="Billing Postal Codes" required />
-            <textarea value={billingAddressState} onChange={e => setBillingAddressState(e.target.value)} placeholder="Billing State" required />
-            <textarea value={billingAddressCountry} onChange={e => setBillingAddressCountry(e.target.value)} placeholder="Billing Country" required />
-            <select value={plan} onChange={e => setPlan(e.target.value)}>
-                <option value="base">Base - 20€</option>
-                <option value="premium">Premium - 50€</option>
-                <option value="pro">Pro - 100€</option>
-            </select>
-            <CardElement />
-            <button type="submit" disabled={!stripe}>Sign Up and Pay</button>
-        </form>
+        <Container maxWidth="md">
+            <Paper elevation={3} style={{ padding: '20px', marginTop: '20px' }}>
+                <Typography variant="h4" gutterBottom>
+                    Checkout Form
+                </Typography>
+                <form onSubmit={handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Full Name"
+                                fullWidth
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Email"
+                                type="email"
+                                fullWidth
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Password"
+                                type="password"
+                                fullWidth
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Phone"
+                                fullWidth
+                                value={phone}
+                                onChange={e => setPhone(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Billing Address"
+                                fullWidth
+                                value={billingAddress}
+                                onChange={e => setBillingAddress(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <TextField
+                                label="City"
+                                fullWidth
+                                value={billingAddressCity}
+                                onChange={e => setBillingAddressCity(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <TextField
+                                label="State"
+                                fullWidth
+                                value={billingAddressState}
+                                onChange={e => setBillingAddressState(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <TextField
+                                label="Postal Code"
+                                fullWidth
+                                value={billingAddressPostalCode}
+                                onChange={e => setBillingAddressPostalCodes(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Country"
+                                fullWidth
+                                value={billingAddressCountry}
+                                onChange={e => setBillingAddressCountry(e.target.value)}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                select
+                                label="Plan"
+                                fullWidth
+                                value={plan}
+                                onChange={e => setPlan(e.target.value)}
+                                required
+                            >
+                                <MenuItem value="base">Base - 20€</MenuItem>
+                                <MenuItem value="premium">Premium - 50€</MenuItem>
+                                <MenuItem value="pro">Pro - 100€</MenuItem>
+                            </TextField>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <div style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px' }}>
+                                <CardElement />
+                            </div>
+                        </Grid>
+                    </Grid>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        style={{ marginTop: '20px' }}
+                        disabled={!stripe}
+                    >
+                        Sign Up and Pay
+                    </Button>
+                </form>
+            </Paper>
+        </Container>
     );
 }
 
