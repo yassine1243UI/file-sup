@@ -1,21 +1,13 @@
 const express = require('express');
-const { uploadFile, getUserFiles, renameFile, deleteFile, downloadFile } = require('../controllers/fileController');
-const { authenticateToken } = require('../middleware/auth');
+const { uploadFile, listFiles, downloadFile, deleteFile } = require('../controllers/fileController');
+const authMiddleware = require('../middleware/auth');
+const upload = require('../middleware/multerConfig');
+const verifyPayment = require('../middleware/verifyPayment');
 const router = express.Router();
 
-// File Upload
-router.post('/upload', authenticateToken, uploadFile);
-
-// List all files for the user
-router.get('/', authenticateToken, getUserFiles);
-
-// Rename a file
-router.put('/:id', authenticateToken, renameFile);
-
-// Delete a file (soft delete)
-router.delete('/:id', authenticateToken, deleteFile);
-
-// Download a file
-router.get('/download/:id', authenticateToken, downloadFile);
+router.post('/upload', authMiddleware,verifyPayment, upload.single('file'), uploadFile);
+router.get('/', authMiddleware, verifyPayment,listFiles);
+router.get('/:fileId', authMiddleware, downloadFile);
+router.delete('/:fileId', authMiddleware,verifyPayment, deleteFile);
 
 module.exports = router;

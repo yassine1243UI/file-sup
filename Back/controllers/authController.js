@@ -51,49 +51,79 @@ exports.signup = async (req, res) => {
 };
 
 exports.handlePaymentSuccess = async (req, res) => {
-    console.log('DEBUG: Entering handlePaymentSuccess');
-    console.log('DEBUG: Request body:', req.body);
-
     const { paymentIntentId, password } = req.body;
 
     if (!paymentIntentId || !password) {
-        console.error('DEBUG: Missing paymentIntentId or password');
         return res.status(400).json({ message: 'PaymentIntentId and password are required' });
     }
 
     try {
+        console.log(`DEBUG: Retrieving PaymentIntent with ID: ${paymentIntentId}`);
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-        console.log('DEBUG: Payment intent retrieved:', paymentIntent);
 
         if (!paymentIntent) {
             console.error(`DEBUG: Payment intent ${paymentIntentId} not found`);
             return res.status(404).json({ message: 'Payment Intent not found' });
         }
 
-        if (paymentIntent.status !== 'succeeded') {
-            console.error(`DEBUG: Payment not successful. Status: ${paymentIntent.status}`);
-            return res.status(400).json({ message: 'Payment not successful' });
-        }
+        console.log('DEBUG: PaymentIntent status:', paymentIntent.status);
 
         const { userId } = paymentIntent.metadata;
 
-        // Mettre à jour la facture dans la base
-        await db.query('UPDATE invoices SET status = ? WHERE payment_intent_id = ?', ['paid', paymentIntentId]);
-        console.log('DEBUG: Invoice updated to paid for paymentIntentId:', paymentIntentId);
+        // Check if the payment has already succeeded
+        if (paymentIntent.status === 'succeeded') {
+            console.log('DEBUG: PaymentIntent already succeeded. Updating invoice...');
 
-        // Hacher le mot de passe pour des raisons de sécurité
+            const [result] = await db.query(
+                'UPDATE invoices SET status = ? WHERE payment_intent_id = ?',
+                ['paid', paymentIntentId]
+            );
+
+            if (result.affectedRows === 0) {
+                console.error(`DEBUG: Invoice update failed for PaymentIntent ID: ${paymentIntentId}`);
+                return res.status(500).json({ message: 'Failed to update invoice status' });
+            }
+
+            console.log(`DEBUG: Invoice updated to 'paid' for PaymentIntent ID: ${paymentIntentId}`);
+            return res.status(200).json({ message: 'Payment already completed and invoice updated' });
+        }
+
+        // If the status is not succeeded, check if confirmation is required
+        if (paymentIntent.status !== 'requires_confirmation') {
+            console.error(
+                `DEBUG: PaymentIntent cannot be confirmed in its current state: ${paymentIntent.status}`
+            );
+            return res.status(400).json({
+                message: `PaymentIntent cannot be processed in its current state: ${paymentIntent.status}`,
+            });
+        }
+
+        // Hash the password and update the user information
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Mettre à jour l'utilisateur dans la base
         await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashedPassword, userId]);
-        console.log('DEBUG: User password updated for userId:', userId);
 
+        // Update the invoice status to paid
+        const [invoiceResult] = await db.query(
+            'UPDATE invoices SET status = ? WHERE payment_intent_id = ?',
+            ['paid', paymentIntentId]
+        );
+
+        if (invoiceResult.affectedRows === 0) {
+            console.error(`DEBUG: Failed to update invoice for PaymentIntent ID: ${paymentIntentId}`);
+            return res.status(500).json({ message: 'Failed to update invoice status' });
+        }
+
+        console.log(`DEBUG: User and invoice updated successfully for PaymentIntent ID: ${paymentIntentId}`);
         res.status(201).json({ message: 'Payment successful and user registered' });
     } catch (err) {
         console.error('DEBUG: Error in handlePaymentSuccess:', err);
         res.status(500).json({ message: 'Error completing payment success process', error: err.message });
     }
 };
+
+
+
+
 
 
 
@@ -105,20 +135,30 @@ exports.login = async (req, res) => {
     }
 
     try {
-        const getUserQuery = 'SELECT * FROM users WHERE email = ?';
-        const [result] = await db.query(getUserQuery, [email]);
-
-        if (!result.length) {
+        // Get user data
+        const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (!users.length) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
+        const user = users[0];
 
-        const user = result[0];
+        // Check password
         const validPassword = await bcrypt.compare(password, user.password_hash);
-
         if (!validPassword) {
             return res.status(400).json({ message: 'Invalid password' });
         }
 
+        // Check payment status
+        const [invoices] = await db.query(
+            'SELECT status FROM invoices WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
+            [user.id]
+        );
+
+        if (!invoices.length || invoices[0].status !== 'paid') {
+            return res.status(403).json({ message: 'Access denied. Please complete your payment.' });
+        }
+
+        // Generate token if all checks pass
         const token = jwt.sign({ user_id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.json({ token });
