@@ -1,94 +1,147 @@
-const fs = require('fs');
+const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const db = require('../config/db');
 
+// Configure Multer
+const upload = multer({
+    dest: path.join(__dirname, '../uploads'),
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max file size
+});
+
+
 exports.uploadFile = async (req, res) => {
-    const { file } = req;
-    const userId = req.user.id;
+    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const file = req.file;
 
     if (!file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const filePath = file.path;
-    const fileSize = file.size;
-    const fileName = file.originalname;
-
     try {
-        // Vérifier le quota de stockage
+        // Check current storage usage
+        console.log(`DEBUG: Checking current storage usage for user: ${userId}`);
         const [result] = await db.query(
-            'SELECT SUM(file_size) AS totalSize FROM files WHERE user_id = ?',
+            'SELECT SUM(size) as totalSize FROM files WHERE user_id = ?',
             [userId]
         );
-        const totalSize = result[0]?.totalSize || 0;
+        const currentStorage = result[0]?.totalSize || 0;
 
-        if (totalSize + fileSize > 20480 * 1024 * 1024) { // 20GB en octets
+        const storageLimit = 20 * 1024 * 1024 * 1024; // 20GB in bytes
+        console.log(
+            `DEBUG: Current storage used: ${currentStorage} bytes, File size: ${file.size} bytes, Limit: ${storageLimit} bytes`
+        );
+
+        if (currentStorage + file.size > storageLimit) {
+            // Remove uploaded file if storage exceeds
+            fs.unlinkSync(file.path);
             return res.status(400).json({ message: 'Storage limit exceeded' });
         }
 
-        // Insérer dans la base de données
-        await db.query(
-            'INSERT INTO files (user_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)',
-            [userId, fileName, filePath, fileSize]
-        );
+        // Insert file metadata into the database
+        console.log('DEBUG: Inserting file metadata into the database');
+        const query = `
+            INSERT INTO files (user_id, file_name, name, path, size, file_size, mimeType, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        `;
+        const values = [
+            userId,            // user_id
+            file.originalname, // file_name
+            file.originalname, // name
+            file.path,         // path
+            file.size,         // size
+            file.size,         // file_size
+            file.mimetype      // mimeType
+        ];
+
+        const [insertResult] = await db.query(query, values);
+        console.log('DEBUG: File metadata inserted into database:', insertResult);
 
         res.status(201).json({ message: 'File uploaded successfully' });
-    } catch (err) {
-        console.error('Error uploading file:', err);
-        res.status(500).json({ message: 'Error uploading file' });
+    } catch (error) {
+        console.error('File upload error:', error);
+        res.status(500).json({ message: 'Error uploading file', error: error.message });
     }
 };
 
-exports.listFiles = async (req, res) => {
-    const userId = req.user.id;
+
+
+
+
+// Middleware for handling file uploads
+exports.uploadMiddleware = upload.single('file');
+exports.getFiles = async (req, res) => {
+    const { userId } = req.user; // Assuming userId is set in req.user via middleware
 
     try {
-        const [files] = await db.query('SELECT * FROM files WHERE user_id = ?', [userId]);
-        res.status(200).json(files);
-    } catch (err) {
-        console.error('Error listing files:', err);
-        res.status(500).json({ message: 'Error listing files' });
-    }
-};
+        console.log(`DEBUG: Retrieving files for user: ${userId}`);
 
-exports.downloadFile = async (req, res) => {
-    const { fileId } = req.params;
+        // Adjust column names to match the actual database schema
+        const [files] = await db.query(
+            'SELECT id, file_name AS name, size, mimeType, created_at AS uploaded_at FROM files WHERE user_id = ?',
+            [userId]
+        );
 
-    try {
-        const [fileResult] = await db.query('SELECT * FROM files WHERE id = ?', [fileId]);
-        const file = fileResult[0];
-
-        if (!file) {
-            return res.status(404).json({ message: 'File not found' });
+        if (files.length === 0) {
+            console.log('DEBUG: No files found for user:', userId);
+            return res.status(404).json({ message: 'No files found' });
         }
 
-        res.download(file.file_path, file.file_name);
-    } catch (err) {
-        console.error('Error downloading file:', err);
-        res.status(500).json({ message: 'Error downloading file' });
+        console.log(`DEBUG: Retrieved ${files.length} files for user: ${userId}`);
+        res.status(200).json({
+            message: 'Files retrieved successfully',
+            files,
+        });
+    } catch (error) {
+        console.error('Error fetching user files:', error);
+        res.status(500).json({
+            message: 'Error retrieving files',
+            error: error.message,
+        });
     }
 };
 
+exports.getUserFiles = async (req, res) => {
+    const { userId } = req.user;
+
+    try {
+        const [files] = await db.query(
+            'SELECT id, file_name, file_size, file_type, uploaded_at FROM files WHERE user_id = ?',
+            [userId]
+        );
+
+        res.status(200).json({ files });
+    } catch (error) {
+        console.error('Error fetching user files:', error);
+        res.status(500).json({ message: 'Error fetching files', error: error.message });
+    }
+};
 exports.deleteFile = async (req, res) => {
+    const { userId } = req.user;
     const { fileId } = req.params;
 
     try {
-        const [fileResult] = await db.query('SELECT * FROM files WHERE id = ?', [fileId]);
-        const file = fileResult[0];
+        const [files] = await db.query(
+            'SELECT file_path FROM files WHERE id = ? AND user_id = ?',
+            [fileId, userId]
+        );
 
-        if (!file) {
+        if (!files.length) {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Supprimer le fichier physique
-        fs.unlinkSync(file.file_path);
+        const filePath = files[0].file_path;
 
-        // Supprimer l'entrée de la base de données
+        // Remove file from the filesystem
+        fs.unlinkSync(filePath);
+
+        // Remove file record from the database
         await db.query('DELETE FROM files WHERE id = ?', [fileId]);
 
         res.status(200).json({ message: 'File deleted successfully' });
-    } catch (err) {
-        console.error('Error deleting file:', err);
-        res.status(500).json({ message: 'Error deleting file' });
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        res.status(500).json({ message: 'Error deleting file', error: error.message });
     }
 };
+
