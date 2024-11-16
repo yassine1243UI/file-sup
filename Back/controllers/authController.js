@@ -2,7 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { createPaymentIntent } = require('./paymentController');
-const { sendRegistrationEmail } = require('./mailUtils');
+const { sendEmail, sendRegistrationEmail } = require('./mailUtils');
+
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Fonction pour insérer un utilisateur dans la base de données
@@ -37,8 +39,8 @@ exports.signup = async (req, res) => {
         // Crée l'intention de paiement
         const clientSecret = await createPaymentIntent(userId, email, billing_address);
 
-        // Envoie l'e-mail de confirmation
         await sendRegistrationEmail(email, name, 20, 20480);
+
 
         res.status(201).json({
             message: 'Signup and payment successful',
@@ -165,5 +167,59 @@ exports.login = async (req, res) => {
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Error during login process', error: error.message });
+    }
+};
+
+
+exports.deleteAccount = async (req, res) => {
+    const { userId } = req.user;
+
+    try {
+        // Start a transaction
+        await db.query('START TRANSACTION');
+
+        // Get user details
+        const [users] = await db.query('SELECT email, name FROM users WHERE id = ?', [userId]);
+        if (!users.length) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const user = users[0];
+
+        // Get count of user files
+        const [fileCountResult] = await db.query('SELECT COUNT(*) as fileCount FROM files WHERE user_id = ?', [userId]);
+        const fileCount = fileCountResult[0]?.fileCount || 0;
+
+        // Delete user files
+        await db.query('DELETE FROM files WHERE user_id = ?', [userId]);
+
+        // Delete user record
+        await db.query('DELETE FROM users WHERE id = ?', [userId]);
+
+        // Send confirmation email
+        const subject = 'Account Deletion Confirmation';
+        const text = `
+        Dear ${user.name},
+        
+        Your account has been successfully deleted. All your ${fileCount} files have been permanently removed.
+        
+        Thank you for using our service.
+        
+        Best regards,  
+        FileSup Team`;
+
+        console.log('DEBUG: Sending email to:', user.email);
+        await sendEmail(user.email, subject, text);
+        console.log('DEBUG: Email sent successfully');
+
+        // Commit the transaction if everything succeeds
+        await db.query('COMMIT');
+
+        res.status(200).json({ message: 'Account and files deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting account:', error);
+
+        // Roll back the transaction in case of an error
+        await db.query('ROLLBACK');
+        res.status(500).json({ message: 'Error deleting account. No changes were made.', error: error.message });
     }
 };

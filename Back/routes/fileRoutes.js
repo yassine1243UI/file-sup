@@ -1,5 +1,5 @@
 const express = require('express');
-const { uploadMiddleware, uploadFile, getUserFiles, deleteFile, getFiles ,updateFileMetadata, downloadFile } = require('../controllers/fileController');
+const { uploadMiddleware, uploadFile, getUserFiles, deleteFile, getFiles ,updateFileMetadata, downloadFile} = require('../controllers/fileController');
 const authMiddleware = require('../middleware/auth');
 const verifyPayment = require('../middleware/verifyPayment');
 
@@ -12,5 +12,6 @@ router.put('/:fileId', authMiddleware, verifyPayment, updateFileMetadata);
 router.get('/download/:fileId', authMiddleware, downloadFile);
 // Delete a file
 router.delete('/:fileId', authMiddleware, verifyPayment, deleteFile);
+
 
 module.exports = router;

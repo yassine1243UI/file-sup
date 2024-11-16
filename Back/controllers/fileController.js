@@ -218,5 +218,3 @@ exports.downloadFile = async (req, res) => {
         res.status(500).json({ message: 'Error processing file download', error: error.message });
     }
 };
-
-
