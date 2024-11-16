@@ -186,4 +186,37 @@ exports.updateFileMetadata = async (req, res) => {
     }
 };
 
+exports.downloadFile = async (req, res) => {
+    const { fileId } = req.params;
+    const { userId } = req.user; // Assuming userId is available in req.user from authentication middleware
+
+    try {
+        // Retrieve file metadata from the database
+        const [result] = await db.query('SELECT * FROM files WHERE id = ? AND user_id = ?', [fileId, userId]);
+
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'File not found or access denied' });
+        }
+
+        const file = result[0];
+        const filePath = file.path;
+
+        // Check if the file exists on the server
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ message: 'File not found on the server' });
+        }
+
+        // Send the file to the user
+        return res.download(filePath, file.file_name, (err) => {
+            if (err) {
+                console.error('File download error:', err);
+                res.status(500).json({ message: 'Error downloading file' });
+            }
+        });
+    } catch (error) {
+        console.error('Error in downloadFile:', error);
+        res.status(500).json({ message: 'Error processing file download', error: error.message });
+    }
+};
+
 
