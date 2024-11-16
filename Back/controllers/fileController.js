@@ -117,31 +117,73 @@ exports.getUserFiles = async (req, res) => {
     }
 };
 exports.deleteFile = async (req, res) => {
-    const { userId } = req.user;
-    const { fileId } = req.params;
+    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const { fileId } = req.params; // File ID from request parameters
 
     try {
-        const [files] = await db.query(
-            'SELECT file_path FROM files WHERE id = ? AND user_id = ?',
+        console.log(`DEBUG: Deleting file with ID: ${fileId} by user: ${userId}`);
+
+        // Retrieve file path for deletion
+        const [fileResult] = await db.query(
+            'SELECT path FROM files WHERE id = ? AND user_id = ?',
             [fileId, userId]
         );
 
-        if (!files.length) {
-            return res.status(404).json({ message: 'File not found' });
+        if (fileResult.length === 0) {
+            return res.status(404).json({ message: 'File not found or no permission to delete' });
         }
 
-        const filePath = files[0].file_path;
+        const filePath = fileResult[0].path;
 
-        // Remove file from the filesystem
+        // Remove file from the server
         fs.unlinkSync(filePath);
+        console.log(`DEBUG: File deleted from server: ${filePath}`);
 
-        // Remove file record from the database
-        await db.query('DELETE FROM files WHERE id = ?', [fileId]);
+        // Delete file record from the database
+        const [result] = await db.query(
+            'DELETE FROM files WHERE id = ? AND user_id = ?',
+            [fileId, userId]
+        );
 
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'File not found or no permission to delete' });
+        }
+
+        console.log('DEBUG: File metadata deleted from database:', result);
         res.status(200).json({ message: 'File deleted successfully' });
     } catch (error) {
         console.error('Error deleting file:', error);
         res.status(500).json({ message: 'Error deleting file', error: error.message });
     }
 };
+exports.updateFileMetadata = async (req, res) => {
+    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const { fileId } = req.params; // File ID from request parameters
+    const { name } = req.body; // New file name from request body
+
+    if (!name) {
+        return res.status(400).json({ message: 'File name is required' });
+    }
+
+    try {
+        console.log(`DEBUG: Updating file metadata for file ID: ${fileId} by user: ${userId}`);
+
+        // Update file metadata in the database
+        const [result] = await db.query(
+            'UPDATE files SET file_name = ? WHERE id = ? AND user_id = ?',
+            [name, fileId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'File not found or no permission to update' });
+        }
+
+        console.log('DEBUG: File metadata updated successfully:', result);
+        res.status(200).json({ message: 'File metadata updated successfully' });
+    } catch (error) {
+        console.error('Error updating file metadata:', error);
+        res.status(500).json({ message: 'Error updating file metadata', error: error.message });
+    }
+};
+
 
