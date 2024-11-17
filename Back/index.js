@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 // Importation des routes
 const authRoutes = require('./routes/authRoutes');
 const fileRoutes = require('./routes/fileRoutes');
-
+const adminRoutes = require('./routes/adminRoutes'); 
 // Configuration de l'application
 dotenv.config();
 const app = express();
@@ -23,7 +23,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
-
+app.use('/api/admin', adminRoutes);
 // Gestion des erreurs globales (optionnel)
 app.use((err, req, res, next) => {
     console.error('Global Error Handler:', err.stack);

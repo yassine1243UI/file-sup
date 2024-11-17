@@ -1,9 +1,17 @@
 const express = require('express');
-const { getAllUserFiles, getSystemStats, deleteUserFile } = require('../controllers/adminController');
+const { 
+    getAllUserFiles, 
+    getSystemStats, 
+    deleteUserFile, 
+    getAllUsersWithStats 
+} = require('../controllers/adminController');
 const authMiddleware = require('../middleware/auth');
 const adminMiddleware = require('../middleware/adminMiddleware');
 
 const router = express.Router();
+
+// View all users with file stats and remaining storage
+router.get('/users', authMiddleware, adminMiddleware, getAllUsersWithStats);
 
 // View all user files
 router.get('/files', authMiddleware, adminMiddleware, getAllUserFiles);
