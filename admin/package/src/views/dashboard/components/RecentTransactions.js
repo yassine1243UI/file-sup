@@ -1,100 +1,53 @@
 import React from 'react';
 import DashboardCard from '../../../components/shared/DashboardCard';
-import {
-  Timeline,
-  TimelineItem,
-  TimelineOppositeContent,
-  TimelineSeparator,
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-  timelineOppositeContentClasses,
-} from '@mui/lab';
-import { Link, Typography } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { Box, Typography, LinearProgress, Stack, Button } from '@mui/material';
+import User from '../../utilities/UserPage'
 
 const RecentTransactions = () => {
+  const totalStorage = 100; // En Go
+  const pricePerUnit = 20; // En €
+  const percentageUsed = 75; // En %
+
   return (
-    <DashboardCard title="Recent Transactions">
-      <>
-        <Timeline
-          className="theme-timeline"
-          nonce={undefined}
-          onResize={undefined}
-          onResizeCapture={undefined}
+    <DashboardCard title="Aperçu du stockage et des ventes">
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Typography variant="h5" fontWeight="600">
+          Stockage total vendu
+        </Typography>
+        <Typography variant="h2" color="primary.main" fontWeight="700">
+          {totalStorage} Go
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Chaque gigaoctet vendu pour <strong>{pricePerUnit} €</strong>
+        </Typography>
+      </Box>
+
+      <Stack spacing={2} sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight="600">
+          Progression de l'utilisation
+        </Typography>
+        <LinearProgress
+          variant="determinate"
+          value={percentageUsed}
           sx={{
-            p: 0,
-            mb: '-40px',
-            '& .MuiTimelineConnector-root': {
-              width: '1px',
-              backgroundColor: '#efefef'
-            },
-            [`& .${timelineOppositeContentClasses.root}`]: {
-              flex: 0.5,
-              paddingLeft: 0,
+            height: 10,
+            borderRadius: 5,
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: percentageUsed > 50 ? 'primary.main' : 'warning.main',
             },
           }}
-        >
-          <TimelineItem>
-            <TimelineOppositeContent>09:30 am</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot color="primary" variant="outlined" />
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>Payment received from John Doe of $385.90</TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent>10:00 am</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot color="secondary" variant="outlined" />
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography fontWeight="600">New sale recorded</Typography>{' '}
-              <Link href="/" underline="none">
-                #ML-3467
-              </Link>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent>12:00 am</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot color="success" variant="outlined" />
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>Payment was made of $64.95 to Michael</TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent>09:30 am</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot color="warning" variant="outlined" />
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography fontWeight="600">New sale recorded</Typography>{' '}
-              <Link href="/" underline="none">
-                #ML-3467
-              </Link>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent>09:30 am</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot color="error" variant="outlined" />
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography fontWeight="600">New arrival recorded</Typography>
-            </TimelineContent>
-          </TimelineItem>
-          <TimelineItem>
-            <TimelineOppositeContent>12:00 am</TimelineOppositeContent>
-            <TimelineSeparator>
-              <TimelineDot color="success" variant="outlined" />
-            </TimelineSeparator>
-            <TimelineContent>Payment Received</TimelineContent>
-          </TimelineItem>
-        </Timeline>
-      </>
+        />
+        <Typography variant="body2" textAlign="right" color="text.secondary">
+          {percentageUsed}% du stockage utilisé
+        </Typography>
+      </Stack>
+
+      <Box textAlign="center">
+        <Button variant="contained" color="primary" component={Link} to='/ui/user-page'>
+          Voir les détails
+        </Button>
+      </Box>
     </DashboardCard>
   );
 };

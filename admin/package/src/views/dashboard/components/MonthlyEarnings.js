@@ -12,19 +12,25 @@ const MonthlyEarnings = () => {
   const secondarylight = '#f5fcff';
   const errorlight = '#fdede8';
 
-  // chart
+  // Données fictives pour les gains mensuels
+  const earningsData = {
+    currentMonth: 6820,  // Gains du mois en cours
+    lastMonth: 6250,     // Gains du mois précédent
+    trendData: [25, 66, 20, 40, 12, 58, 20],  // Historique des données
+  };
+
+  // Calcul du pourcentage de croissance
+  const growthPercentage = ((earningsData.currentMonth - earningsData.lastMonth) / earningsData.lastMonth) * 100;
+
+  // Configuration du graphique
   const optionscolumnchart = {
     chart: {
       type: 'area',
       fontFamily: "'Plus Jakarta Sans', sans-serif;",
       foreColor: '#adb0bb',
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
       height: 60,
-      sparkline: {
-        enabled: true,
-      },
+      sparkline: { enabled: true },
       group: 'sparklines',
     },
     stroke: {
@@ -43,19 +49,20 @@ const MonthlyEarnings = () => {
       theme: theme.palette.mode === 'dark' ? 'dark' : 'light',
     },
   };
+
   const seriescolumnchart = [
     {
       name: '',
       color: secondary,
-      data: [25, 66, 20, 40, 12, 58, 20],
+      data: earningsData.trendData,
     },
   ];
 
   return (
     <DashboardCard
-      title="Monthly Earnings"
+      title="Gains mensuels"
       action={
-        <Fab color="secondary" size="medium" sx={{color: '#ffffff'}}>
+        <Fab color="secondary" size="medium" sx={{ color: '#ffffff' }}>
           <IconCurrencyDollar width={24} />
         </Fab>
       }
@@ -65,17 +72,17 @@ const MonthlyEarnings = () => {
     >
       <>
         <Typography variant="h3" fontWeight="700" mt="-20px">
-          $6,820
+          ${earningsData.currentMonth.toLocaleString()}
         </Typography>
         <Stack direction="row" spacing={1} my={1} alignItems="center">
           <Avatar sx={{ bgcolor: errorlight, width: 27, height: 27 }}>
             <IconArrowDownRight width={20} color="#FA896B" />
           </Avatar>
           <Typography variant="subtitle2" fontWeight="600">
-            +9%
+            {growthPercentage.toFixed(1)}%
           </Typography>
           <Typography variant="subtitle2" color="textSecondary">
-            last year
+            mois précédent
           </Typography>
         </Stack>
       </>

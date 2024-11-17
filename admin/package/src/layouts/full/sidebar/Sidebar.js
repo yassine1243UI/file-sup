@@ -112,7 +112,7 @@ const MSidebar = (props) => {
         {/* Sidebar For Mobile */}
         {/* ------------------------------------------- */}
         <SidebarItems />
-        <Upgrade />
+        
       </Sidebar>
     </Drawer>
   );

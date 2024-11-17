@@ -1,5 +1,5 @@
 import {
-  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus
+  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconUsers , IconUserPlus
 } from '@tabler/icons-react';
 
 import { uniqueId } from 'lodash';
@@ -16,22 +16,28 @@ const Menuitems = [
     icon: IconLayoutDashboard,
     href: '/dashboard',
   },
-  {
-    navlabel: true,
-    subheader: 'Utilities',
-  },
+  // {
+  //   navlabel: true,
+  //   subheader: 'Utilities',
+  // },
+  // {
+  //   id: uniqueId(),
+  //   title: 'Typography',
+  //   icon: IconTypography,
+  //   href: '/ui/typography',
+  // },
   {
     id: uniqueId(),
-    title: 'Typography',
-    icon: IconTypography,
-    href: '/ui/typography',
+    title: 'Utilisateur',
+    icon: IconUsers,
+    href: '/ui/user-page',
   },
-  {
-    id: uniqueId(),
-    title: 'Shadow',
-    icon: IconCopy,
-    href: '/ui/shadow',
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: 'Shadow',
+  //   icon: IconCopy,
+  //   href: '/ui/shadow',
+  // },
   {
     navlabel: true,
     subheader: 'Auth',
