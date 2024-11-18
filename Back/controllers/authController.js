@@ -86,8 +86,13 @@ exports.handlePaymentSuccess = async (req, res) => {
         // Gérer les actions selon `purpose`
         if (purpose === 'additional_storage') {
             const additionalStorage = 20480; // 20GB
-            await db.query('UPDATE users SET extra_storage = extra_storage + ? WHERE id = ?', [additionalStorage, userId]);
-
+            const [updateStorageResult] = await db.query(
+                'UPDATE users SET total_storage = total_storage + ? WHERE id = ?',
+                [additionalStorage, userId]
+            );
+    
+            console.log('DEBUG: Storage updated for user:', updateStorageResult);
+    
             const [user] = await db.query('SELECT name, email FROM users WHERE id = ?', [userId]);
             const subject = 'Confirmation d\'achat de stockage supplémentaire';
             const text = `
