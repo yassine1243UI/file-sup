@@ -182,50 +182,74 @@ exports.deleteAccount = async (req, res) => {
     const { userId } = req.user;
 
     try {
-        // Start a transaction
+        // Commencer une transaction pour garantir la cohérence des données
         await db.query('START TRANSACTION');
 
-        // Get user details
+        // Récupérer les détails de l'utilisateur
         const [users] = await db.query('SELECT email, name FROM users WHERE id = ?', [userId]);
         if (!users.length) {
             return res.status(404).json({ message: 'User not found' });
         }
         const user = users[0];
 
-        // Get count of user files
+        // Récupérer le nombre de fichiers de l'utilisateur
         const [fileCountResult] = await db.query('SELECT COUNT(*) as fileCount FROM files WHERE user_id = ?', [userId]);
         const fileCount = fileCountResult[0]?.fileCount || 0;
 
-        // Delete user files
+        // Supprimer les fichiers de l'utilisateur
+        const [files] = await db.query('SELECT path FROM files WHERE user_id = ?', [userId]);
+        for (const file of files) {
+            try {
+                fs.unlinkSync(file.path); // Supprime le fichier du système
+            } catch (err) {
+                console.error(`Error deleting file: ${file.path}`, err);
+            }
+        }
         await db.query('DELETE FROM files WHERE user_id = ?', [userId]);
 
-        // Delete user record
+        // Supprimer l'utilisateur de la base de données
         await db.query('DELETE FROM users WHERE id = ?', [userId]);
 
-        // Send confirmation email
-        const subject = 'Account Deletion Confirmation';
-        const text = `
+        // Envoyer un email de confirmation à l'utilisateur
+        const userSubject = 'Account Deletion Confirmation';
+        const userText = `
         Dear ${user.name},
-        
+
         Your account has been successfully deleted. All your ${fileCount} files have been permanently removed.
-        
+
         Thank you for using our service.
-        
+
         Best regards,  
         FileSup Team`;
 
-        console.log('DEBUG: Sending email to:', user.email);
-        await sendEmail(user.email, subject, text);
-        console.log('DEBUG: Email sent successfully');
+        await sendEmail(user.email, userSubject, userText);
 
-        // Commit the transaction if everything succeeds
+        // Récupérer l'email de l'administrateur
+        const [admins] = await db.query('SELECT email FROM users WHERE role = ?', ['admin']);
+        if (admins.length) {
+            const adminEmail = admins[0].email;
+
+            // Envoyer un email à l'administrateur
+            const adminSubject = 'User Account Deletion Notification';
+            const adminText = `
+            Hello Administrator,
+
+            The account of ${user.name} has been deleted, and all ${fileCount} files associated with the account have been permanently removed.
+
+            Best regards,  
+            FileSup System`;
+
+            await sendEmail(adminEmail, adminSubject, adminText);
+        }
+
+        // Commit de la transaction si tout est réussi
         await db.query('COMMIT');
 
         res.status(200).json({ message: 'Account and files deleted successfully' });
     } catch (error) {
         console.error('Error deleting account:', error);
 
-        // Roll back the transaction in case of an error
+        // Rollback de la transaction en cas d'erreur
         await db.query('ROLLBACK');
         res.status(500).json({ message: 'Error deleting account. No changes were made.', error: error.message });
     }
