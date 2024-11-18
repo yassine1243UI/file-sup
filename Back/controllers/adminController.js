@@ -112,28 +112,77 @@ exports.deleteUserFile = async (req, res) => {
     }
 };
 exports.getAllUsersWithStats = async (req, res) => {
-    try {
-        console.log('DEBUG: Fetching all users with file stats and remaining storage');
+        const { userId } = req.params;
+    
+        try {
+            console.log(`DEBUG: Fetching details for user ID: ${userId}`);
+            
+            const query = `
+                SELECT 
+                    u.id AS userId, 
+                    u.name, 
+                    u.email, 
+                    u.role, 
+                    (u.total_storage + COALESCE(u.extra_storage, 0)) AS totalStorage, 
+                    COALESCE(SUM(f.size), 0) AS usedStorage,
+                    (u.total_storage + COALESCE(u.extra_storage, 0)) - COALESCE(SUM(f.size), 0) AS remainingStorage
+                FROM users u
+                LEFT JOIN files f ON u.id = f.user_id
+                WHERE u.id = ?
+                GROUP BY u.id
+            `;
+    
+            const [result] = await db.query(query, [userId]);
+    
+            if (!result.length) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            console.log('DEBUG: User details fetched:', result[0]);
+            res.status(200).json(result[0]);
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            res.status(500).json({ message: 'Error fetching user details', error: error.message });
+        }
+    };
+    
 
-        const storageQuota = 20 * 1024 * 1024 * 1024; // 20GB in bytes
 
-        const [users] = await db.query(`
-            SELECT 
-                u.id, 
-                u.name, 
-                u.email, 
-                u.role,
-                COUNT(f.id) AS file_count,
-                COALESCE(SUM(f.size), 0) AS total_storage_used,
-                ? - COALESCE(SUM(f.size), 0) AS remaining_storage
-            FROM users u
-            LEFT JOIN files f ON u.id = f.user_id
-            GROUP BY u.id
-        `, [storageQuota]);
-
-        res.status(200).json(users);
-    } catch (error) {
-        console.error('Error fetching users with stats:', error);
-        res.status(500).json({ message: 'Error fetching users with stats', error: error.message });
-    }
-};
+    exports.deleteUser = async (req, res) => {
+        const userId = req.params.id;
+        
+            console.log('DEBUG: req.params:', req.params); // Log req.params for debugging
+        
+            if (!userId) {
+                console.error('DEBUG: userId is missing in req.params:', req.params);
+                return res.status(400).json({ message: 'User ID is required' });
+            }
+        
+            try {
+                console.log(`DEBUG: Processing delete action for user ID: ${userId}`);
+        
+                // Verify if the user exists
+                const [userCheck] = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
+        
+                if (!userCheck.length) {
+                    return res.status(404).json({ message: 'User not found' });
+                }
+        
+                // Count and delete user files
+                const [fileCount] = await db.query('SELECT COUNT(*) AS count FROM files WHERE user_id = ?', [userId]);
+                const deletedFileCount = fileCount[0]?.count || 0;
+        
+                await db.query('DELETE FROM files WHERE user_id = ?', [userId]);
+                await db.query('DELETE FROM users WHERE id = ?', [userId]);
+        
+                console.log(`DEBUG: User ${userId} and their files deleted`);
+        
+                res.status(200).json({
+                    message: `User and ${deletedFileCount} files deleted successfully`,
+                });
+            } catch (error) {
+                console.error(`Error processing delete action for user ID: ${userId}`, error);
+                res.status(500).json({ message: 'Error processing delete action', error: error.message });
+            }
+        };
+        
