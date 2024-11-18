@@ -55,71 +55,73 @@ exports.signup = async (req, res) => {
 exports.handlePaymentSuccess = async (req, res) => {
     const { paymentIntentId, password } = req.body;
 
-    if (!paymentIntentId || !password) {
-        return res.status(400).json({ message: 'PaymentIntentId and password are required' });
+    if (!paymentIntentId) {
+        return res.status(400).json({ message: 'PaymentIntentId is required' });
     }
 
     try {
         console.log(`DEBUG: Retrieving PaymentIntent with ID: ${paymentIntentId}`);
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-        if (!paymentIntent) {
-            console.error(`DEBUG: Payment intent ${paymentIntentId} not found`);
-            return res.status(404).json({ message: 'Payment Intent not found' });
+        if (!paymentIntent || paymentIntent.status !== 'succeeded') {
+            return res.status(400).json({ message: 'Payment not successful or invalid PaymentIntent' });
         }
 
-        console.log('DEBUG: PaymentIntent status:', paymentIntent.status);
+        const { userId, purpose } = paymentIntent.metadata;
 
-        const { userId } = paymentIntent.metadata;
-
-        // Check if the payment has already succeeded
-        if (paymentIntent.status === 'succeeded') {
-            console.log('DEBUG: PaymentIntent already succeeded. Updating invoice...');
-
-            const [result] = await db.query(
-                'UPDATE invoices SET status = ? WHERE payment_intent_id = ?',
-                ['paid', paymentIntentId]
-            );
-
-            if (result.affectedRows === 0) {
-                console.error(`DEBUG: Invoice update failed for PaymentIntent ID: ${paymentIntentId}`);
-                return res.status(500).json({ message: 'Failed to update invoice status' });
-            }
-
-            console.log(`DEBUG: Invoice updated to 'paid' for PaymentIntent ID: ${paymentIntentId}`);
-            return res.status(200).json({ message: 'Payment already completed and invoice updated' });
+        if (!purpose || (purpose !== 'additional_storage' && purpose !== 'registration')) {
+            console.error(`DEBUG: Unknown purpose for PaymentIntent ID: ${paymentIntentId}. Purpose: ${purpose}`);
+            return res.status(400).json({ message: 'Unknown purpose for this payment' });
         }
 
-        // If the status is not succeeded, check if confirmation is required
-        if (paymentIntent.status !== 'requires_confirmation') {
-            console.error(
-                `DEBUG: PaymentIntent cannot be confirmed in its current state: ${paymentIntent.status}`
-            );
-            return res.status(400).json({
-                message: `PaymentIntent cannot be processed in its current state: ${paymentIntent.status}`,
-            });
+        // Vérifiez si une facture existe pour ce PaymentIntent
+        const [invoiceCheck] = await db.query('SELECT * FROM invoices WHERE payment_intent_id = ?', [paymentIntentId]);
+        if (!invoiceCheck.length) {
+            return res.status(404).json({ message: 'Invoice not found for this payment intent' });
         }
 
-        // Hash the password and update the user information
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashedPassword, userId]);
+        // Mettre à jour la facture en "paid"
+        await db.query('UPDATE invoices SET status = ? WHERE payment_intent_id = ?', ['paid', paymentIntentId]);
 
-        // Update the invoice status to paid
-        const [invoiceResult] = await db.query(
-            'UPDATE invoices SET status = ? WHERE payment_intent_id = ?',
-            ['paid', paymentIntentId]
-        );
+        // Gérer les actions selon `purpose`
+        if (purpose === 'additional_storage') {
+            const additionalStorage = 20480; // 20GB
+            await db.query('UPDATE users SET extra_storage = extra_storage + ? WHERE id = ?', [additionalStorage, userId]);
 
-        if (invoiceResult.affectedRows === 0) {
-            console.error(`DEBUG: Failed to update invoice for PaymentIntent ID: ${paymentIntentId}`);
-            return res.status(500).json({ message: 'Failed to update invoice status' });
+            const [user] = await db.query('SELECT name, email FROM users WHERE id = ?', [userId]);
+            const subject = 'Confirmation d\'achat de stockage supplémentaire';
+            const text = `
+Bonjour ${user[0].name},
+
+Merci pour votre achat de 20GB supplémentaires pour 20 €. Votre espace de stockage a été augmenté.
+
+Meilleures salutations,  
+L'équipe Filesup`;
+
+            await sendEmail(user[0].email, subject, text);
         }
 
-        console.log(`DEBUG: User and invoice updated successfully for PaymentIntent ID: ${paymentIntentId}`);
-        res.status(201).json({ message: 'Payment successful and user registered' });
-    } catch (err) {
-        console.error('DEBUG: Error in handlePaymentSuccess:', err);
-        res.status(500).json({ message: 'Error completing payment success process', error: err.message });
+        if (purpose === 'registration') {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashedPassword, userId]);
+
+            const [user] = await db.query('SELECT name, email FROM users WHERE id = ?', [userId]);
+            const subject = 'Bienvenue chez Filesup !';
+            const text = `
+Bonjour ${user[0].name},
+
+Merci pour votre inscription à Filesup. Votre paiement de 20 € pour le plan de 20GB a été traité avec succès.
+
+Bienvenue dans notre communauté,  
+L'équipe Filesup`;
+
+            await sendEmail(user[0].email, subject, text);
+        }
+
+        res.status(200).json({ message: 'Payment completed successfully' });
+    } catch (error) {
+        console.error('Error handling payment success:', error);
+        res.status(500).json({ message: 'Error handling payment success', error: error.message });
     }
 };
 
