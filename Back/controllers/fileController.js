@@ -238,39 +238,48 @@ exports.downloadFile = async (req, res) => {
 
 
 exports.getFilteredAndSortedFiles = async (req, res) => {
-    try {
-        const { format, fileName, sortBy, sortOrder = 'asc' } = req.query;
-        const { userId } = req.user;
-
-        let query = `SELECT id, file_name, size, mimeType, created_at FROM files WHERE user_id = ?`;
-        const queryParams = [userId];
-
-        // Filtrer par format de fichier
-        if (format) {
-            query += ` AND mimeType LIKE ?`;
-            queryParams.push(`%${format}%`);
-        }
-
-        // Recherche par nom de fichier
-        if (fileName) {
-            query += ` AND file_name LIKE ?`;
-            queryParams.push(`%${fileName}%`);
-        }
-
-        // Tri
-        if (sortBy) {
-            const validSortFields = ['created_at', 'size'];
-            if (validSortFields.includes(sortBy)) {
-                query += ` ORDER BY ${sortBy} ${sortOrder === 'desc' ? 'DESC' : 'ASC'}`;
+        const { userId } = req.user; // Récupérer l'utilisateur connecté via middleware
+        const { format, search, sortBy, order } = req.query; // Récupérer les paramètres de filtrage et de tri
+    
+        try {
+            // Base query
+            let query = `
+                SELECT id, file_name, name, size, mimeType, created_at 
+                FROM files 
+                WHERE user_id = ?
+            `;
+            const values = [userId];
+    
+            // Ajouter un filtre par format de fichier (mimeType)
+            if (format) {
+                query += ' AND mimeType LIKE ?';
+                values.push(`${format}%`);
             }
+    
+            // Ajouter une recherche par nom de fichier avec LIKE %%
+            if (search) {
+                query += ' AND name LIKE ?';
+                values.push(`%${search}%`);
+            }
+    
+            // Ajouter un tri
+            if (sortBy) {
+                const validSortBy = ['created_at', 'size']; // Champs autorisés pour le tri
+                const validOrder = ['ASC', 'DESC']; // Ordre de tri valide
+    
+                if (validSortBy.includes(sortBy)) {
+                    query += ` ORDER BY ${sortBy}`;
+                    query += validOrder.includes(order) ? ` ${order}` : ' ASC';
+                }
+            }
+    
+            // Exécuter la requête SQL
+            const [files] = await db.query(query, values);
+    
+            res.status(200).json({ files });
+        } catch (error) {
+            console.error('Error fetching user files:', error);
+            res.status(500).json({ message: 'Error fetching files', error: error.message });
         }
-
-        // Exécution de la requête
-        const [files] = await db.query(query, queryParams);
-
-        res.status(200).json(files);
-    } catch (error) {
-        console.error('Error retrieving filtered and sorted files:', error);
-        res.status(500).json({ message: 'Error retrieving files', error: error.message });
-    }
-};
+    };
+    
