@@ -4,7 +4,12 @@ const {
     getSystemStats, 
     deleteUserFile, 
     getAllUsersWithStats,
-    deleteUser
+    deleteUser,
+    getUploadStats,
+    getTotalStorageUsed,
+    getUserStats,
+    filterFiles,
+    downloadFile
 } = require('../controllers/adminController');
 const authMiddleware = require('../middleware/auth');
 const adminMiddleware = require('../middleware/adminMiddleware');
@@ -13,6 +18,15 @@ const router = express.Router();
 
 // View all users with file stats and remaining storage
 // router.get('/users', authMiddleware, adminMiddleware, getAllUsersWithStats);
+router.get('/stats/uploads', authMiddleware, adminMiddleware, getUploadStats);
+router.get('/files/filter', authMiddleware, adminMiddleware, filterFiles);
+router.get('/files/download/:fileId', authMiddleware, adminMiddleware, downloadFile);
+
+// Get total storage used
+router.get('/stats/storage', authMiddleware, adminMiddleware, getTotalStorageUsed);
+
+// Get user statistics (active/inactive)
+router.get('/stats/users', authMiddleware, adminMiddleware, getUserStats);
 
 // View all user files
 router.get('/files', authMiddleware, adminMiddleware, getAllUserFiles);

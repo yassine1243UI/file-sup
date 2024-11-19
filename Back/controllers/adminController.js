@@ -186,3 +186,162 @@ exports.getAllUsersWithStats = async (req, res) => {
             }
         };
         
+        exports.getUploadStats = async (req, res) => {
+            try {
+                // Files uploaded by day
+                const [filesPerDay] = await db.query(`
+                    SELECT 
+                        DATE(created_at) AS uploadDate, 
+                        COUNT(*) AS fileCount 
+                    FROM files 
+                    GROUP BY DATE(created_at)
+                    ORDER BY uploadDate DESC
+                `);
+        
+                // Files uploaded by week
+                const [filesPerWeek] = await db.query(`
+                    SELECT 
+                        YEARWEEK(created_at) AS week, 
+                        COUNT(*) AS fileCount 
+                    FROM files 
+                    GROUP BY YEARWEEK(created_at)
+                    ORDER BY week DESC
+                `);
+        
+                res.status(200).json({
+                    message: 'Upload statistics retrieved successfully',
+                    filesPerDay,
+                    filesPerWeek,
+                });
+            } catch (error) {
+                console.error('Error retrieving upload statistics:', error);
+                res.status(500).json({ message: 'Error retrieving upload statistics', error: error.message });
+            }
+        };
+        
+
+
+
+        exports.getTotalStorageUsed = async (req, res) => {
+            try {
+                const [storageStats] = await db.query(`
+                    SELECT 
+                        COALESCE(SUM(size), 0) AS totalStorageUsed 
+                    FROM files
+                `);
+        
+                res.status(200).json({
+                    message: 'Total storage used retrieved successfully',
+                    totalStorageUsed: storageStats[0].totalStorageUsed,
+                });
+            } catch (error) {
+                console.error('Error retrieving total storage stats:', error);
+                res.status(500).json({ message: 'Error retrieving total storage stats', error: error.message });
+            }
+        };
+        
+
+        exports.getUserStats = async (req, res) => {
+                try {
+                    const [userStats] = await db.query(`
+                        SELECT 
+                            SUM(active = 1) AS activeUsers,
+                            SUM(active = 0) AS inactiveUsers
+                        FROM users
+                    `);
+            
+                    res.status(200).json({
+                        message: 'User statistics retrieved successfully',
+                        activeUsers: userStats[0].activeUsers,
+                        inactiveUsers: userStats[0].inactiveUsers,
+                    });
+                } catch (error) {
+                    console.error('Error retrieving user statistics:', error);
+                    res.status(500).json({ message: 'Error retrieving user statistics', error: error.message });
+                }
+            };
+
+
+            // Filter and search files for admin
+exports.filterFiles = async (req, res) => {
+    const { userId, extension, page = 1, limit = 10 } = req.query;
+
+    try {
+        const offset = (page - 1) * limit;
+
+        // Base query
+        let query = `
+            SELECT f.id, f.file_name, f.size, f.mimeType, u.name AS user_name 
+            FROM files f
+            LEFT JOIN users u ON f.user_id = u.id
+            WHERE 1=1
+        `;
+        const queryParams = [];
+
+        // Apply filters if provided
+        if (userId) {
+            query += ` AND f.user_id = ?`;
+            queryParams.push(userId);
+        }
+
+        if (extension) {
+            query += ` AND f.mimeType LIKE ?`;
+            queryParams.push(`%${extension}`);
+        }
+
+        // Add pagination
+        query += ` LIMIT ? OFFSET ?`;
+        queryParams.push(parseInt(limit), parseInt(offset));
+
+        const [files] = await db.query(query, queryParams);
+
+        res.status(200).json({
+            message: 'Files retrieved successfully',
+            files,
+            currentPage: page,
+            pageSize: limit,
+        });
+    } catch (error) {
+        console.error('Error filtering files:', error);
+        res.status(500).json({ message: 'Error filtering files', error: error.message });
+    }
+};
+
+
+// Download a file on behalf of a user
+exports.downloadFile = async (req, res) => {
+    const { fileId } = req.params;
+
+    try {
+        // Retrieve file details
+        const [fileDetails] = await db.query(
+            `SELECT f.path, f.file_name, u.name AS user_name
+             FROM files f
+             LEFT JOIN users u ON f.user_id = u.id
+             WHERE f.id = ?`,
+            [fileId]
+        );
+
+        if (!fileDetails.length) {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        const file = fileDetails[0];
+
+        // Send the file as a download
+        res.download(file.path, file.file_name, (err) => {
+            if (err) {
+                console.error('Error downloading file:', err);
+                res.status(500).json({ message: 'Error downloading file' });
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching file for download:', error);
+        res.status(500).json({ message: 'Error fetching file for download', error: error.message });
+    }
+};
+
+            
+
+        
+    
