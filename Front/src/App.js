@@ -1,19 +1,25 @@
-import React from 'react';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import PaymentForm from './Pages/PaymentForm';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Signup from "./components/Signup";
+import Login from "./components/Login";
+import Payment from "./components/Payment";
 
-// Load the Stripe script
-const stripePromise = loadStripe('pk_test_51PvlpgL0QB8STWZLEvVaSObOdudM0AC3vCYYg05Ifgn1yD8E6XJhBs6HRZG9sdiyqdfw8l3ST3Ib8JHbt62m7kRv00zN8JrURE');
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <Elements stripe={stripePromise}>
-        <PaymentForm />
-      </Elements>
-    </div>
+    <Router>
+      <Routes>
+        {/* Route pour la connexion */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Route pour l'inscription */}
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/payment" element={<Payment />} />
+        {/* Redirection par défaut vers /login */}
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

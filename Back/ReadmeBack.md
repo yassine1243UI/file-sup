@@ -48,7 +48,7 @@
 - **Corps de la requête :**
   ```json
   {
-    "paymentIntentId": "pi_12345",
+    "paymentIntentId": "pi_12345_secret",
     "password": "newpassword"
   }
   ```

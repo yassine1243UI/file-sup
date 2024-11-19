@@ -34,14 +34,23 @@ exports.signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Crée l'utilisateur dans la base de données
-        const userId = await insertUser(name, email, hashedPassword, phone, billing_address, '20GB');
+        const [insertResult] = await db.query(
+            'INSERT INTO users (name, email, password_hash, phone, billing_address, plan) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, email, hashedPassword, phone, JSON.stringify(billing_address), '20GB']
+        );
+
+        const userId = insertResult.insertId;
 
         // Crée l'intention de paiement
-        const clientSecret = await createPaymentIntent(userId, email, billing_address);
+        const clientSecret = await createPaymentIntent({
+            userId,
+            email,
+            billingAddress: billing_address,
+            purpose: 'registration'
+        });
+        
 
-        await sendRegistrationEmail(email, name, 20, 20480);
-
-
+        // Réponse de succès
         res.status(201).json({
             message: 'Signup and payment successful',
             clientSecret,
