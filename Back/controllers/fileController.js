@@ -13,7 +13,7 @@ const upload = multer({
 
 
 exports.uploadFile = async (req, res) => {
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const userId = req.user.user_id;  // Assuming userId is set in req.user via middleware
     const file = req.file;
 
     if (!file) {
@@ -87,7 +87,7 @@ exports.uploadFile = async (req, res) => {
 // Middleware for handling file uploads
 exports.uploadMiddleware = upload.single('file');
 exports.getFiles = async (req, res) => {
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const userId = req.user.user_id; // Assuming userId is set in req.user via middleware
 
     try {
         console.log(`DEBUG: Retrieving files for user: ${userId}`);
@@ -118,7 +118,7 @@ exports.getFiles = async (req, res) => {
 };
 
 exports.getUserFiles = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.user_id; 
 
     try {
         const [files] = await db.query(
@@ -173,7 +173,7 @@ exports.deleteFile = async (req, res) => {
     }
 };
 exports.updateFileMetadata = async (req, res) => {
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const userId = req.user.user_id;  // Assuming userId is set in req.user via middleware
     const { fileId } = req.params; // File ID from request parameters
     const { name } = req.body; // New file name from request body
 
@@ -204,7 +204,7 @@ exports.updateFileMetadata = async (req, res) => {
 
 exports.downloadFile = async (req, res) => {
     const { fileId } = req.params;
-    const { userId } = req.user; // Assuming userId is available in req.user from authentication middleware
+    const userId = req.user.user_id;  // Assuming userId is available in req.user from authentication middleware
 
     try {
         // Retrieve file metadata from the database
@@ -238,7 +238,7 @@ exports.downloadFile = async (req, res) => {
 
 
 exports.getFilteredAndSortedFiles = async (req, res) => {
-        const { userId } = req.user; // Récupérer l'utilisateur connecté via middleware
+    const userId = req.user.user_id;  // Récupérer l'utilisateur connecté via middleware
         const { format, search, sortBy, order } = req.query; // Récupérer les paramètres de filtrage et de tri
     
         try {

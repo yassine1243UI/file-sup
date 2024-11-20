@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 const verifyPayment = async (req, res, next) => {
-    const { userId } = req.user; // Ensure userId is retrieved from `authMiddleware`
+    const userId = req.user.user_id;  // Ensure userId is retrieved from `authMiddleware`
 
     try {
         // Check the latest invoice for the user
