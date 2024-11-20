@@ -3,6 +3,7 @@ const db = require('../config/db');
 
 // Crée une intention de paiement pour le plan 20GB
 exports.createPaymentIntent = async ({ userId, email, billingAddress, purpose }) => {
+    console.log(process.env.STRIPE_SECRET_KEY)
     try {
         if (!userId || !email || !billingAddress || !purpose) {
             throw new Error('Missing required fields (userId, email, billingAddress, purpose)');

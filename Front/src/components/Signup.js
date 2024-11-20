@@ -30,18 +30,31 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Appel API pour créer un utilisateur et obtenir le client secret
     try {
       const response = await axios.post("http://localhost:5000/api/auth/signup", formData);
       const clientSecret = response.data.clientSecret;
-      alert("Inscription réussie ! Procédez au paiement.");
-      navigate("/payment", { state: { clientSecret } });
-    //   navigate("/payment", { state: { clientSecret: response.clientSecret } });
 
+      alert("Inscription réussie ! Procédez au paiement.");
+      // Passe le clientSecret et userInfo (nom, email, password) vers la page de paiement
+      navigate("/payment", { 
+        state: { 
+          clientSecret, 
+          userInfo: { 
+            name: formData.name, 
+            email: formData.email, 
+            password: formData.password 
+          }
+        } 
+      });
     } catch (error) {
-      console.error(error);
+      console.error("Erreur lors de l'inscription :", error);
       alert("Erreur lors de l'inscription.");
     }
   };
+  
+  
 
   return (
     <form onSubmit={handleSubmit}>
