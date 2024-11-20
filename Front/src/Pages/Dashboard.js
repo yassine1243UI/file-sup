@@ -1,4 +1,3 @@
-// frontend/Pages/Dashboard.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -7,115 +6,169 @@ const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);  // Indicateur de chargement
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState({
+    format: "",
+    search: "",
+    sortBy: "uploaded_at",
+    order: "DESC",
+  });
   const navigate = useNavigate();
 
-  // Fonction pour récupérer les fichiers de l'utilisateur
+  // Function to fetch files with filters
   const fetchFiles = async () => {
+    setLoading(true);
     try {
       const response = await axios.get("http://localhost:5000/api/files", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,  // Auth Token
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Auth token
         },
+        params: filter, // Pass the filters as query parameters
       });
 
       if (response.status === 200) {
-        setFiles(response.data.files); // Mettre à jour la liste des fichiers
+        setFiles(response.data.files); // Store the filtered files in the state
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération des fichiers :", error);
-      setMessage("Erreur lors de la récupération des fichiers.");
+      console.error("Error retrieving files:", error);
+      setMessage("Error retrieving files.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Récupérer les fichiers à l'initialisation
+  // Call fetchFiles whenever the filter changes
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [filter]); // Re-run this effect when the filter changes
 
-  // Gestion de la sélection de fichier
+  // Handle file input change (file selection)
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]); // Sélectionner le fichier
+    setFile(e.target.files[0]);
   };
 
-  // Gestion du téléchargement
+  // Function to download a file
   const handleDownload = (fileId) => {
     const url = `http://localhost:5000/api/files/download/${fileId}`;
-    window.open(url, "_blank"); // Ouvre le fichier dans un nouvel onglet
+    window.open(url, "_blank"); // Open the file in a new tab
   };
 
-  // Gestion de l'upload
+  // Handle file upload
   const handleUpload = async (e) => {
     e.preventDefault();
 
     if (!file) {
-      setMessage("Veuillez sélectionner un fichier à télécharger.");
+      setMessage("Please select a file to upload.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", file);  // 'file' est le nom du champ de fichier dans le formulaire
+    formData.append("file", file);
 
     try {
-      setLoading(true); // Afficher le message de chargement
+      setLoading(true);
       const response = await axios.post("http://localhost:5000/api/files/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Auth Token
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Auth token
         },
       });
 
       if (response.status === 200) {
-        setMessage("Fichier téléchargé avec succès !");
-        // Ajout du fichier à la liste des fichiers
-        setFiles([...files, response.data]);
-        // Récupérer à nouveau les fichiers après l'upload
-        
+        setMessage("File uploaded successfully!");
+        setFiles((prevFiles) => [response.data.file, ...prevFiles]); // Add file to the list
+        setFile(null); // Reset file input
       }
-      fetchFiles();
     } catch (error) {
-      console.error("Erreur lors de l'upload:", error);
-      setMessage("Erreur lors de l'upload du fichier.");
+      console.error("Error uploading file:", error);
+      setMessage("Error uploading file.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle filter change (search, format, sorting)
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilter((prevFilter) => ({
+      ...prevFilter,
+      [name]: value,
+    }));
+  };
+  // Function to delete a file
+  const handleDelete = async (fileId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/files/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,  // Auth token
+        },
+      });
+
+      setFiles(files.filter((file) => file.id !== fileId));  // Remove the deleted file from the list
+      setMessage("File deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      setMessage("Error deleting file.");
+    }
+  };
   return (
     <div>
-      <h1>Tableau de bord de l'utilisateur</h1>
-      <h2>Vos fichiers</h2>
+      <h1>User Dashboard</h1>
+      <h2>Your Files</h2>
 
-      {/* Formulaire d'upload de fichier */}
+      {/* Filter and Sorting */}
       <div>
-        <h3>Uploader un fichier</h3>
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by name"
+          value={filter.search}
+          onChange={handleFilterChange}
+        />
+        <select name="format" value={filter.format} onChange={handleFilterChange}>
+          <option value="">Filter by format</option>
+          <option value="pdf">PDF</option>
+          <option value="image">Image</option>
+        </select>
+        <select name="sortBy" value={filter.sortBy} onChange={handleFilterChange}>
+          <option value="uploaded_at">Sort by Date</option>
+          <option value="size">Sort by Size</option>
+        </select>
+        <select name="order" value={filter.order} onChange={handleFilterChange}>
+          <option value="ASC">Ascending</option>
+          <option value="DESC">Descending</option>
+        </select>
+      </div>
+
+      {/* File upload form */}
+      <div>
+        <h3>Upload a File</h3>
         <form onSubmit={handleUpload}>
           <input type="file" onChange={handleFileChange} />
           <button type="submit" disabled={loading}>
-            {loading ? "Chargement..." : "Télécharger"}
+            {loading ? "Uploading..." : "Upload"}
           </button>
         </form>
       </div>
 
-      {/* Affichage des messages */}
+      {/* Display messages */}
       {message && <p>{message}</p>}
 
-      {/* Liste des fichiers */}
+      {/* Displaying files */}
       {loading ? (
-        <p>Chargement des fichiers...</p>
+        <p>Loading files...</p>
       ) : files.length > 0 ? (
         <ul>
           {files.map((file) => (
             <li key={file.id}>
-              {file.name} - {file.size} bytes
-              <button onClick={() => handleDownload(file.id)}>Télécharger</button>
+              <span>{file.name}</span> - {file.size} bytes
+              <button onClick={() => handleDownload(file.id)}>Download</button>
+              <button onClick={() => handleDelete(file.id)}>Delete</button>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Aucun fichier trouvé</p>
+        <p>No files found</p>
       )}
     </div>
   );

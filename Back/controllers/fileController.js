@@ -133,7 +133,7 @@ exports.getUserFiles = async (req, res) => {
     }
 };
 exports.deleteFile = async (req, res) => {
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
+    const userId = req.user.user_id // Assuming userId is set in req.user via middleware
     const { fileId } = req.params; // File ID from request parameters
 
     try {
