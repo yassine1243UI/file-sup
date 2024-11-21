@@ -13,8 +13,31 @@ const Dashboard = () => {
     sortBy: "created_at",  // Default sorting by date
     order: "ASC",  // Default sorting order
   });
+  const [storageStats, setStorageStats] = useState(null);
   const navigate = useNavigate();
   // Function to delete a file
+  useEffect(() => {
+    const fetchStorageStats = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/auth/storage-stats", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (response.status === 200) {
+          setStorageStats(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching storage stats:", error);
+        setMessage('Failed to fetch storage stats.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStorageStats();
+  }, []);
   const handleDelete = async (fileId) => {
     try {
       await axios.delete(`http://localhost:5000/api/files/${fileId}`, {
@@ -158,7 +181,18 @@ const Dashboard = () => {
 
       {/* Display messages */}
       {message && <p>{message}</p>}
-
+      {loading ? (
+        <p>Chargement des informations de stockage...</p>
+      ) : storageStats ? (
+        <div>
+          <h2>Votre espace de stockage</h2>
+          <p>Total de stockage: {storageStats.totalStorage} Mo</p>
+          <p>Espace utilisé: {storageStats.totalUsed} Mo</p>
+          <p>Reste à utiliser: {storageStats.remainingStorage} Mo</p>
+        </div>
+      ) : (
+        <p>{message}</p>
+      )}
       {/* Display files */}
       {loading ? (
         <p>Loading files...</p>

@@ -1,10 +1,11 @@
 const express = require('express');
-const { signup, login , handlePaymentSuccess, deleteAccount  } = require('../controllers/authController');
+const { signup, login , handlePaymentSuccess, deleteAccount,getStorageStats  } = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
 const { generateInvoice } = require('../controllers/invoiceController');
 const router = express.Router();
 
 // Routes publiques
+router.get('/storage-stats', authMiddleware, getStorageStats);
 router.post('/signup', signup);
 router.post('/login', login);
 router.post('/payment-success', handlePaymentSuccess);

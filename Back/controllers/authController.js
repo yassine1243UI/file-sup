@@ -141,8 +141,40 @@ L'équipe Filesup`;
 };
 
 
-
-
+    exports.getStorageStats = async (req, res) => {
+        const userId = req.user.user_id; // Get user ID from the authenticated request
+      
+        console.log("DEBUG: User ID:", userId);  // Log the user ID to ensure it's being correctly retrieved
+      
+        try {
+          // Query the total storage used by the user
+          const [storageData] = await db.query(
+            'SELECT SUM(size) as totalUsed FROM files WHERE user_id = ?',
+            [userId]
+          );
+      
+          console.log("DEBUG: Storage data retrieved:", storageData);  // Log the query result
+      
+          // Define the total storage limit (example: 20GB)
+          const totalStorageLimit = 20480; // in MB (20GB)
+      
+          const totalUsed = storageData[0]?.totalUsed || 0;
+          console.log("DEBUG: Total used storage:", totalUsed);  // Log the total used storage
+      
+          const remainingStorage = totalStorageLimit - totalUsed;
+          console.log("DEBUG: Remaining storage:", remainingStorage);  // Log the remaining storage
+      
+          res.status(200).json({
+            totalStorage: totalStorageLimit,
+            totalUsed,
+            remainingStorage,
+          });
+        } catch (error) {
+          console.error('Error fetching storage stats:', error);
+          res.status(500).json({ message: 'Error retrieving storage stats', error: error.message });
+        }
+      };
+      
 
 
 
