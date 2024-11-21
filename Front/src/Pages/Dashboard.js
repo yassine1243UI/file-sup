@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import Header from "../components/Header/Header";
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [file, setFile] = useState(null);
@@ -115,6 +115,7 @@ const Dashboard = () => {
 
   return (
     <div>
+      <Header />
       <h1>User Dashboard</h1>
       <h2>Your Files</h2>
 

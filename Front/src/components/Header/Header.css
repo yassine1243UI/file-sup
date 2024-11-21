@@ -1,0 +1,35 @@
+/* Styles pour le Header */
+.header {
+  display: flex;
+  justify-content: space-between; /* Espacement entre le titre et le bouton */
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #2c3e50; /* Couleur de fond */
+  color: white; /* Couleur du texte */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px; /* Espacement sous le header */
+}
+
+.header-title {
+  font-size: 24px;
+  margin: 0;
+}
+
+.logout-button {
+  background-color: #e74c3c; /* Couleur de fond du bouton */
+  color: white; /* Couleur du texte */
+  border: none;
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #c0392b; /* Changer la couleur au survol */
+}
+
+.logout-button:focus {
+  outline: none; /* Enlever le focus après un clic */
+}
