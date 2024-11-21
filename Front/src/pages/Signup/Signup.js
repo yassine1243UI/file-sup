@@ -73,7 +73,16 @@ const Signup = () => {
       );
       const clientSecret = response.data.clientSecret;
       alert("Inscription réussie ! Procédez au paiement.");
-      navigate("/payment", { state: { clientSecret } });
+      navigate("/payment", { 
+        state: { 
+          clientSecret, 
+          userInfo: { 
+            name: formData.name, 
+            email: formData.email, 
+            password: formData.password 
+          }
+        } 
+      });
     } catch (error) {
       console.error(error);
       setError("Erreur lors de l'inscription. Veuillez réessayer.");

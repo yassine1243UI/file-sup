@@ -1,10 +1,11 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login/Login";
-import Signup from "./pages/Signup/Signup";
-import Payment from "./pages/Payment/Payment";
-import Homepage from "./pages/HomePage/Homepage";
+import Login from "./Pages/Login/Login";
+import Signup from "./Pages/Signup/Signup";
+import Payment from "./Pages/Payment/Payment"
+import Homepage from "./Pages/HomePage/Homepage";
 import Footer from "./components/Footer/Footer";
+import Dashboard from "./Pages/Dashboard"
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
         <Route path="/" element={<Homepage />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
       <Footer/>

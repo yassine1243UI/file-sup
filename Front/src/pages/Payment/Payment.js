@@ -8,6 +8,7 @@ import "./Payment.css";
 const stripePromise = loadStripe("pk_test_51PvlpgL0QB8STWZLk81AQ7kFUrdQbGKoQZdPkE3i8oMO4bkcdSrFCQMCZ0pP0iGQ0puYrqXodDj67tl8xyspZiov00ROwen1YD");
 
 const PaymentForm = ({ clientSecret, userInfo }) => {
+  console.log('userinfo',userInfo)
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();

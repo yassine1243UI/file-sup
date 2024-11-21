@@ -236,50 +236,64 @@ exports.downloadFile = async (req, res) => {
 };
 
 
+// In fileController.js
 
 exports.getFilteredAndSortedFiles = async (req, res) => {
-    const userId = req.user.user_id;  // Récupérer l'utilisateur connecté via middleware
-        const { format, search, sortBy, order } = req.query; // Récupérer les paramètres de filtrage et de tri
-    
-        try {
-            // Base query
-            let query = `
-                SELECT id, file_name, name, size, mimeType, created_at 
-                FROM files 
-                WHERE user_id = ?
-            `;
-            const values = [userId];
-    
-            // Ajouter un filtre par format de fichier (mimeType)
-            if (format) {
-                query += ' AND mimeType LIKE ?';
-                values.push(`${format}%`);
-            }
-    
-            // Ajouter une recherche par nom de fichier avec LIKE %%
-            if (search) {
-                query += ' AND name LIKE ?';
-                values.push(`%${search}%`);
-            }
-    
-            // Ajouter un tri
-            if (sortBy) {
-                const validSortBy = ['created_at', 'size']; // Champs autorisés pour le tri
-                const validOrder = ['ASC', 'DESC']; // Ordre de tri valide
-    
-                if (validSortBy.includes(sortBy)) {
-                    query += ` ORDER BY ${sortBy}`;
-                    query += validOrder.includes(order) ? ` ${order}` : ' ASC';
-                }
-            }
-    
-            // Exécuter la requête SQL
-            const [files] = await db.query(query, values);
-    
-            res.status(200).json({ files });
-        } catch (error) {
-            console.error('Error fetching user files:', error);
-            res.status(500).json({ message: 'Error fetching files', error: error.message });
-        }
-    };
-    
+    const userId = req.user.user_id;  // Get the user ID from the decoded JWT
+    const { format, search, sortBy, order } = req.query;  // Get filter params from query
+    console.log("DEBUG: Received query parameters:", req.query);
+
+    // Debug: Log the incoming query parameters
+    console.log("DEBUG: Received query parameters:", { format, search, sortBy, order });
+  
+    try {
+      let query = `
+        SELECT id, name, size, mimeType, uploaded_at
+        FROM files
+        WHERE user_id = ?
+      `;
+      const values = [userId];  // User ID is mandatory in the WHERE clause
+  
+      // Apply the format filter if provided
+      if (format) {
+        query += ' AND mimeType LIKE ?';
+        values.push(`${format}%`);  // For example: "application/pdf"
+        console.log("DEBUG: Applied format filter:", format);
+      }
+  
+      // Apply the search filter if provided
+      if (search) {
+        query += ' AND name LIKE ?';
+        values.push(`%${search}%`);  // Match any part of the filename
+        console.log("DEBUG: Applied search filter:", search);
+      }
+  
+      // Apply sorting if provided
+      const validSortBy = ['uploaded_at', 'size'];  // List of allowed columns for sorting
+      const validOrder = ['ASC', 'DESC'];  // Sorting orders: Ascending or Descending
+  
+      // Check if the sort parameters are valid
+      if (validSortBy.includes(sortBy) && validOrder.includes(order)) {
+        query += ` ORDER BY ${sortBy} ${order}`;
+        console.log("DEBUG: Sorting applied:", sortBy, order);
+      } else {
+        query += ' ORDER BY uploaded_at DESC';  // Default sort by date descending
+        console.log("DEBUG: Default sorting applied: uploaded_at DESC.");
+      }
+  
+      // Debug: Log the final query
+      console.log("DEBUG: Final SQL query:", query);
+  
+      // Execute the query
+      const [files] = await db.query(query, values);
+  
+      // Debug: Log the result from the query
+      console.log("DEBUG: Files retrieved:", files);
+  
+      res.status(200).json({ message: "Files retrieved successfully", files });  // Return the files in the response
+    } catch (error) {
+      console.error('Error fetching user files:', error);
+      res.status(500).json({ message: 'Error fetching files', error: error.message });
+    }
+  };
+  

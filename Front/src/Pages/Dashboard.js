@@ -10,24 +10,39 @@ const Dashboard = () => {
   const [filter, setFilter] = useState({
     format: "",
     search: "",
-    sortBy: "uploaded_at",
-    order: "DESC",
+    sortBy: "uploaded_at",  // Default sorting by date
+    order: "ASC",  // Default sorting order
   });
   const navigate = useNavigate();
+  // Function to delete a file
+  const handleDelete = async (fileId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/files/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,  // Auth token
+        },
+      });
 
-  // Function to fetch files with filters
+      setFiles(files.filter((file) => file.id !== fileId));  // Remove the deleted file from the list
+      setMessage("File deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      setMessage("Error deleting file.");
+    }
+  };
+  // Fetch the filtered files from the backend
   const fetchFiles = async () => {
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:5000/api/files", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Auth token
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        params: filter, // Pass the filters as query parameters
+        params: filter,  // Send filters as query params
       });
-
+      console.log("DEBUG: Files retrieved:", response.data.files); 
       if (response.status === 200) {
-        setFiles(response.data.files); // Store the filtered files in the state
+        setFiles(response.data.files);  // Store filtered files in state
       }
     } catch (error) {
       console.error("Error retrieving files:", error);
@@ -40,8 +55,19 @@ const Dashboard = () => {
   // Call fetchFiles whenever the filter changes
   useEffect(() => {
     fetchFiles();
-  }, [filter]); // Re-run this effect when the filter changes
+  }, [filter]); // Re-run when filter changes
 
+  // Handle filter change (search, format, sorting)
+  
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        console.log("DEBUG: Filter changed:", name, value); // Log the change
+        setFilter((prevFilter) => ({
+          ...prevFilter,
+          [name]: value,  // Update the filter state when the user changes a filter option
+        }));
+      };
+      
   // Handle file input change (file selection)
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -50,7 +76,7 @@ const Dashboard = () => {
   // Function to download a file
   const handleDownload = (fileId) => {
     const url = `http://localhost:5000/api/files/download/${fileId}`;
-    window.open(url, "_blank"); // Open the file in a new tab
+    window.open(url, "_blank");  // Open the file in a new tab
   };
 
   // Handle file upload
@@ -87,30 +113,6 @@ const Dashboard = () => {
     }
   };
 
-  // Handle filter change (search, format, sorting)
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilter((prevFilter) => ({
-      ...prevFilter,
-      [name]: value,
-    }));
-  };
-  // Function to delete a file
-  const handleDelete = async (fileId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/files/${fileId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,  // Auth token
-        },
-      });
-
-      setFiles(files.filter((file) => file.id !== fileId));  // Remove the deleted file from the list
-      setMessage("File deleted successfully.");
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      setMessage("Error deleting file.");
-    }
-  };
   return (
     <div>
       <h1>User Dashboard</h1>
@@ -154,7 +156,7 @@ const Dashboard = () => {
       {/* Display messages */}
       {message && <p>{message}</p>}
 
-      {/* Displaying files */}
+      {/* Display files */}
       {loading ? (
         <p>Loading files...</p>
       ) : files.length > 0 ? (
