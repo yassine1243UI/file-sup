@@ -1,0 +1,65 @@
+.input-container {
+    width: 100%;
+  }
+  
+  .input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #4a4a4a;
+    font-weight: 500;
+  }
+  
+  .input-field {
+    width: 100%;
+    max-width: 12rem;
+    height: 2.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: white;
+    color: #111827;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .input-field:focus {
+    border-color: #4338ca;
+    box-shadow: 0 4px 8px rgba(67, 56, 202, 0.2);
+  }
+  
+  .input-success {
+    border-color: #10b981;
+  }
+  
+  .input-success:focus {
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+  }
+  
+  .input-error {
+    border-color: #ef4444;
+  }
+  
+  .input-error:focus {
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+  }
+  
+  .disabled-field {
+    background-color: #f9fafb;
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+  }
+  
+  .select-field {
+    appearance: none;
+    padding-right: 2.5rem;
+    background: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+      no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+  }
+  

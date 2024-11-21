@@ -1,19 +1,26 @@
-import React from 'react';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import PaymentForm from './Pages/PaymentForm';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./Pages/Login/Login";
+import Signup from "./Pages/Signup/Signup";
+import Payment from "./Pages/Payment/Payment"
+import Homepage from "./Pages/HomePage/Homepage";
+import Footer from "./components/Footer/Footer";
+import Dashboard from "./Pages/Dashboard"
 
-// Load the Stripe script
-const stripePromise = loadStripe('pk_test_51PvlpgL0QB8STWZLEvVaSObOdudM0AC3vCYYg05Ifgn1yD8E6XJhBs6HRZG9sdiyqdfw8l3ST3Ib8JHbt62m7kRv00zN8JrURE');
-
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <Elements stripe={stripePromise}>
-        <PaymentForm />
-      </Elements>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Homepage />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+      <Footer/>
+    </Router>
   );
-}
+};
 
 export default App;

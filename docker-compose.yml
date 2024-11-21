@@ -2,10 +2,16 @@ version: '3'
 services:
   front:
     image: fayesarah98947/front:latest
+<<<<<<< HEAD
     build:
       context: ./Front
     ports:
       - "3001:80"
+=======
+   
+    ports:
+      - "3001:80"   
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
     depends_on:
@@ -13,10 +19,16 @@ services:
 
   back:
     image: fayesarah98947/back:latest
+<<<<<<< HEAD
     build:
       context: ./Back
     ports:
       - "5001:5000"
+=======
+  
+    ports:
+      - "5001:5000" # Map backend server to localhost:5000
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     environment:
       - MYSQL_HOST=mysql
       - MYSQL_USER=${MYSQL_USER}
@@ -33,7 +45,11 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
+<<<<<<< HEAD
       - "3307:3306"
+=======
+      - "3307:3306"  # Map MySQL port to localhost:3306
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     volumes:
       - mysql_data:/var/lib/mysql
 

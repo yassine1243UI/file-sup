@@ -34,6 +34,7 @@ exports.signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Crée l'utilisateur dans la base de données
+<<<<<<< HEAD
         const userId = await insertUser(name, email, hashedPassword, phone, billing_address, '20GB');
 
         // Crée l'intention de paiement
@@ -46,6 +47,29 @@ exports.signup = async (req, res) => {
             message: 'Signup and payment successful',
             clientSecret,
         });
+=======
+        const [insertResult] = await db.query(
+            'INSERT INTO users (name, email, password_hash, phone, billing_address, plan) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, email, hashedPassword, phone, JSON.stringify(billing_address), '20GB']
+        );
+
+        const userId = insertResult.insertId;
+
+        // Crée l'intention de paiement
+        const clientSecret = await createPaymentIntent({
+            userId,
+            email,
+            billingAddress: billing_address,
+            purpose: 'registration'
+        });
+        
+
+        // Réponse de succès
+        res.status(201).json({
+            message: 'Signup and payment successful',
+            clientSecret,
+        });
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     } catch (error) {
         console.error('Signup/payment error:', error);
         res.status(500).json({ message: 'Error during signup/payment process', error: error.message });
@@ -54,6 +78,11 @@ exports.signup = async (req, res) => {
 
 exports.handlePaymentSuccess = async (req, res) => {
     const { paymentIntentId, password } = req.body;
+    console.log('DEBUG: PaymentIntentId:', paymentIntentId);
+    console.log('DEBUG: Password:', password); 
+    if (!paymentIntentId) {
+        return res.status(400).json({ message: 'PaymentIntentId is required' });
+    }
 
     if (!paymentIntentId) {
         return res.status(400).json({ message: 'PaymentIntentId is required' });

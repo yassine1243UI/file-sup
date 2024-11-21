@@ -21,4 +21,8 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Expose port 3000 for React
 EXPOSE 3000
 
+<<<<<<< HEAD
 CMD ["nginx", "-g", "daemon off;"]
+=======
+CMD ["nginx", "-g", "daemon off;"]
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175

@@ -48,7 +48,11 @@
 - **Corps de la requête :**
   ```json
   {
+<<<<<<< HEAD
     "paymentIntentId": "pi_12345",
+=======
+    "paymentIntentId": "pi_12345_secret",
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     "password": "newpassword"
   }
   ```

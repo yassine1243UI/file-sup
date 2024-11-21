@@ -3,4 +3,12 @@ Back/node_modules/
 Back/.env
 Front/.env
 /.env
+<<<<<<< HEAD
 .env 
+=======
+.env 
+Back/.env
+Back/.env
+Back/.env
+Back/.env
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175

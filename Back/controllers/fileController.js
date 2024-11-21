@@ -13,7 +13,11 @@ const upload = multer({
 
 
 exports.uploadFile = async (req, res) => {
+<<<<<<< HEAD
     const { userId } = req.user; // Assuming userId is set in req.user via middleware
+=======
+    const userId = req.user.user_id;  // Assuming userId is set in req.user via middleware
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     const file = req.file;
 
     if (!file) {
@@ -87,7 +91,11 @@ exports.uploadFile = async (req, res) => {
 // Middleware for handling file uploads
 exports.uploadMiddleware = upload.single('file');
 exports.getFiles = async (req, res) => {
+<<<<<<< HEAD
     const { userId } = req.user; // Assuming userId is set in req.user via middleware
+=======
+    const userId = req.user.user_id; // Assuming userId is set in req.user via middleware
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 
     try {
         console.log(`DEBUG: Retrieving files for user: ${userId}`);
@@ -118,7 +126,11 @@ exports.getFiles = async (req, res) => {
 };
 
 exports.getUserFiles = async (req, res) => {
+<<<<<<< HEAD
     const { userId } = req.user;
+=======
+    const userId = req.user.user_id; 
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 
     try {
         const [files] = await db.query(
@@ -133,7 +145,11 @@ exports.getUserFiles = async (req, res) => {
     }
 };
 exports.deleteFile = async (req, res) => {
+<<<<<<< HEAD
     const { userId } = req.user; // Assuming userId is set in req.user via middleware
+=======
+    const userId = req.user.user_id // Assuming userId is set in req.user via middleware
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     const { fileId } = req.params; // File ID from request parameters
 
     try {
@@ -173,7 +189,11 @@ exports.deleteFile = async (req, res) => {
     }
 };
 exports.updateFileMetadata = async (req, res) => {
+<<<<<<< HEAD
     const { userId } = req.user; // Assuming userId is set in req.user via middleware
+=======
+    const userId = req.user.user_id;  // Assuming userId is set in req.user via middleware
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     const { fileId } = req.params; // File ID from request parameters
     const { name } = req.body; // New file name from request body
 
@@ -204,7 +224,11 @@ exports.updateFileMetadata = async (req, res) => {
 
 exports.downloadFile = async (req, res) => {
     const { fileId } = req.params;
+<<<<<<< HEAD
     const { userId } = req.user; // Assuming userId is available in req.user from authentication middleware
+=======
+    const userId = req.user.user_id;  // Assuming userId is available in req.user from authentication middleware
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 
     try {
         // Retrieve file metadata from the database
@@ -236,6 +260,7 @@ exports.downloadFile = async (req, res) => {
 };
 
 
+<<<<<<< HEAD
 
 exports.getFilteredAndSortedFiles = async (req, res) => {
         const { userId } = req.user; // Récupérer l'utilisateur connecté via middleware
@@ -283,3 +308,66 @@ exports.getFilteredAndSortedFiles = async (req, res) => {
         }
     };
     
+=======
+// In fileController.js
+
+exports.getFilteredAndSortedFiles = async (req, res) => {
+    const userId = req.user.user_id;  // Get the user ID from the decoded JWT
+    const { format, search, sortBy, order } = req.query;  // Get filter params from query
+    console.log("DEBUG: Received query parameters:", req.query);
+
+    // Debug: Log the incoming query parameters
+    console.log("DEBUG: Received query parameters:", { format, search, sortBy, order });
+  
+    try {
+      let query = `
+        SELECT id, name, size, mimeType, uploaded_at
+        FROM files
+        WHERE user_id = ?
+      `;
+      const values = [userId];  // User ID is mandatory in the WHERE clause
+  
+      // Apply the format filter if provided
+      if (format) {
+        query += ' AND mimeType LIKE ?';
+        values.push(`${format}%`);  // For example: "application/pdf"
+        console.log("DEBUG: Applied format filter:", format);
+      }
+  
+      // Apply the search filter if provided
+      if (search) {
+        query += ' AND name LIKE ?';
+        values.push(`%${search}%`);  // Match any part of the filename
+        console.log("DEBUG: Applied search filter:", search);
+      }
+  
+      // Apply sorting if provided
+      const validSortBy = ['uploaded_at', 'size'];  // List of allowed columns for sorting
+      const validOrder = ['ASC', 'DESC'];  // Sorting orders: Ascending or Descending
+  
+      // Check if the sort parameters are valid
+      if (validSortBy.includes(sortBy) && validOrder.includes(order)) {
+        query += ` ORDER BY ${sortBy} ${order}`;
+        console.log("DEBUG: Sorting applied:", sortBy, order);
+      } else {
+        query += ' ORDER BY uploaded_at DESC';  // Default sort by date descending
+        console.log("DEBUG: Default sorting applied: uploaded_at DESC.");
+      }
+  
+      // Debug: Log the final query
+      console.log("DEBUG: Final SQL query:", query);
+  
+      // Execute the query
+      const [files] = await db.query(query, values);
+  
+      // Debug: Log the result from the query
+      console.log("DEBUG: Files retrieved:", files);
+  
+      res.status(200).json({ message: "Files retrieved successfully", files });  // Return the files in the response
+    } catch (error) {
+      console.error('Error fetching user files:', error);
+      res.status(500).json({ message: 'Error fetching files', error: error.message });
+    }
+  };
+  
+>>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
