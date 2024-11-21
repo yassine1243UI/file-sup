@@ -1,21 +1,18 @@
 const express = require('express');
-const { uploadFile, getUserFiles, renameFile, deleteFile, downloadFile } = require('../controllers/fileController');
-const { authenticateToken } = require('../middleware/auth');
+const { uploadMiddleware, uploadFile,getFilteredAndSortedFiles, getUserFiles, deleteFile, getFiles ,updateFileMetadata, downloadFile} = require('../controllers/fileController');
+const authMiddleware = require('../middleware/auth');
+const verifyPayment = require('../middleware/verifyPayment');
+
 const router = express.Router();
 
-// File Upload
-router.post('/upload', authenticateToken, uploadFile);
+// File management routes
+router.post('/upload', authMiddleware, verifyPayment, uploadMiddleware, uploadFile);
+router.get('/', authMiddleware, verifyPayment, getFiles);
+router.put('/:fileId', authMiddleware, verifyPayment, updateFileMetadata);
+router.get('/download/:fileId', authMiddleware, downloadFile);
+router.get('/files', authMiddleware, getFilteredAndSortedFiles);
+// Delete a file
+router.delete('/:fileId', authMiddleware, verifyPayment, deleteFile);
 
-// List all files for the user
-router.get('/', authenticateToken, getUserFiles);
-
-// Rename a file
-router.put('/:id', authenticateToken, renameFile);
-
-// Delete a file (soft delete)
-router.delete('/:id', authenticateToken, deleteFile);
-
-// Download a file
-router.get('/download/:id', authenticateToken, downloadFile);
 
 module.exports = router;

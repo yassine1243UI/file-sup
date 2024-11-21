@@ -1,37 +1,43 @@
 const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); 
 const bodyParser = require('body-parser');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+// Importation des routes
 const authRoutes = require('./routes/authRoutes');
 const fileRoutes = require('./routes/fileRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-// const paymentRoutes = require('./routes/paymentRoutes');
-const cors = require('cors');
-
+const adminRoutes = require('./routes/adminRoutes'); 
+const paymentRoutes = require('./routes/paymentRoutes')
+// Configuration de l'application
+dotenv.config();
 const app = express();
-// Use CORS with default options - This will allow all cross-origin requests
+
+// Middleware
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Alternatively, configure CORS with specific options for more security
-app.use(cors({
-    origin: 'http://localhost:3000', // Allow only this origin to access
-    methods: ['GET', 'POST'], // Allow only these methods
-    credentials: true // Allow cookies to be sent across origins
-}));
-
-require('dotenv').config();
-
-app.use(express.json());
+// Gestion des fichiers statiques (accès aux fichiers uploadés si nécessaire)
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
-// app.use('/api/files', fileRoutes);
-// app.use('/api/payments', paymentRoutes);
+app.use('/api/payment', paymentRoutes)
+// Gestion des erreurs globales (optionnel)
+app.use((err, req, res, next) => {
+    console.error('Global Error Handler:', err.stack);
+    res.status(500).json({ message: 'Internal Server Error' });
+});
 
+// Démarrage du serveur
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    // Additional debug info for environment setup verification
-    console.log('Environment Check:', process.env.STRIPE_SECRET_KEY ? 'Stripe Key Set' : 'Stripe Key Not Set');
+    console.log(`Server is running on port ${PORT}`);
+    console.log('Environment variables:', {
+        DB_HOST: process.env.DB_HOST,
+        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ? 'Set' : 'Not Set',
+    });
 });
