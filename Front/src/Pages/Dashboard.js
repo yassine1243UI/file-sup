@@ -10,7 +10,7 @@ const Dashboard = () => {
   const [filter, setFilter] = useState({
     format: "",
     search: "",
-    sortBy: "uploaded_at",  // Default sorting by date
+    sortBy: "created_at",  // Default sorting by date
     order: "ASC",  // Default sorting order
   });
   const navigate = useNavigate();
@@ -32,6 +32,7 @@ const Dashboard = () => {
   };
   // Fetch the filtered files from the backend
   const fetchFiles = async () => {
+    console.log("fichier avant filtre", files)
     setLoading(true);
     try {
       const response = await axios.get("http://localhost:5000/api/files", {
@@ -44,6 +45,7 @@ const Dashboard = () => {
       if (response.status === 200) {
         setFiles(response.data.files);  // Store filtered files in state
       }
+      console.log("fichiers apres filtre", files)
     } catch (error) {
       console.error("Error retrieving files:", error);
       setMessage("Error retrieving files.");
@@ -134,7 +136,7 @@ const Dashboard = () => {
           <option value="image">Image</option>
         </select>
         <select name="sortBy" value={filter.sortBy} onChange={handleFilterChange}>
-          <option value="uploaded_at">Sort by Date</option>
+          <option value="created_at">Sort by Date</option>
           <option value="size">Sort by Size</option>
         </select>
         <select name="order" value={filter.order} onChange={handleFilterChange}>

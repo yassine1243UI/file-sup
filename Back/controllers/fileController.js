@@ -94,7 +94,7 @@ exports.getFiles = async (req, res) => {
 
         // Adjust column names to match the actual database schema
         const [files] = await db.query(
-            'SELECT id, file_name AS name, size, mimeType, created_at AS uploaded_at FROM files WHERE user_id = ?',
+            'SELECT id, file_name AS name, size, mimeType, created_at AS  created_at FROM files WHERE user_id = ?',
             [userId]
         );
 
@@ -122,7 +122,7 @@ exports.getUserFiles = async (req, res) => {
 
     try {
         const [files] = await db.query(
-            'SELECT id, file_name, file_size, file_type, uploaded_at FROM files WHERE user_id = ?',
+            'SELECT id, file_name, file_size, file_type,  created_at FROM files WHERE user_id = ?',
             [userId]
         );
 
@@ -236,64 +236,54 @@ exports.downloadFile = async (req, res) => {
 };
 
 
-// In fileController.js
-
 exports.getFilteredAndSortedFiles = async (req, res) => {
-    const userId = req.user.user_id;  // Get the user ID from the decoded JWT
-    const { format, search, sortBy, order } = req.query;  // Get filter params from query
-    console.log("DEBUG: Received query parameters:", req.query);
-
-    // Debug: Log the incoming query parameters
-    console.log("DEBUG: Received query parameters:", { format, search, sortBy, order });
+    const { format, search, sortBy, order } = req.query;
+    const userId = req.user.user_id;
   
     try {
-      let query = `
-        SELECT id, name, size, mimeType, uploaded_at
-        FROM files
+      // Debug: Print the query parameters
+      console.log("DEBUG: Received query parameters:", req.query);
+  
+      // Build the SQL query with filters and sorting
+      let sqlQuery = `
+        SELECT id, name, size, mimeType, created_at 
+        FROM files 
         WHERE user_id = ?
       `;
-      const values = [userId];  // User ID is mandatory in the WHERE clause
   
-      // Apply the format filter if provided
+      // Add the filter for 'format' if provided
       if (format) {
-        query += ' AND mimeType LIKE ?';
-        values.push(`${format}%`);  // For example: "application/pdf"
-        console.log("DEBUG: Applied format filter:", format);
+        sqlQuery += ` AND mimeType LIKE ?`;
       }
   
-      // Apply the search filter if provided
+      // Add the search filter if provided
       if (search) {
-        query += ' AND name LIKE ?';
-        values.push(`%${search}%`);  // Match any part of the filename
-        console.log("DEBUG: Applied search filter:", search);
+        sqlQuery += ` AND name LIKE ?`;
       }
   
-      // Apply sorting if provided
-      const validSortBy = ['uploaded_at', 'size'];  // List of allowed columns for sorting
-      const validOrder = ['ASC', 'DESC'];  // Sorting orders: Ascending or Descending
+      // Add sorting logic based on 'sortBy' and 'order'
+      sqlQuery += ` ORDER BY ${sortBy} ${order}`;
   
-      // Check if the sort parameters are valid
-      if (validSortBy.includes(sortBy) && validOrder.includes(order)) {
-        query += ` ORDER BY ${sortBy} ${order}`;
-        console.log("DEBUG: Sorting applied:", sortBy, order);
-      } else {
-        query += ' ORDER BY uploaded_at DESC';  // Default sort by date descending
-        console.log("DEBUG: Default sorting applied: uploaded_at DESC.");
-      }
+      // Debug: Print the final SQL query
+      console.log("DEBUG: Final SQL query:", sqlQuery);
   
-      // Debug: Log the final query
-      console.log("DEBUG: Final SQL query:", query);
+      // Execute the query with parameters
+      const [files] = await db.query(sqlQuery, [
+        userId,
+        format ? `%${format}%` : undefined,  // If 'format' exists, filter by mimeType
+        search ? `%${search}%` : undefined,  // If 'search' exists, filter by file name
+      ]);
   
-      // Execute the query
-      const [files] = await db.query(query, values);
+      // Debug: Log the files retrieved
+    //   console.log("DEBUG: Files retrieved:", files);
   
-      // Debug: Log the result from the query
-      console.log("DEBUG: Files retrieved:", files);
-  
-      res.status(200).json({ message: "Files retrieved successfully", files });  // Return the files in the response
+      res.status(200).json({
+        message: "Files retrieved successfully",
+        files: files,
+      });
     } catch (error) {
-      console.error('Error fetching user files:', error);
-      res.status(500).json({ message: 'Error fetching files', error: error.message });
+      console.error("Error retrieving files:", error);
+      res.status(500).json({ message: "Error retrieving files." });
     }
   };
   
