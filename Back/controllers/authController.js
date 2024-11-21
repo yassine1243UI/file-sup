@@ -63,7 +63,8 @@ exports.signup = async (req, res) => {
 
 exports.handlePaymentSuccess = async (req, res) => {
     const { paymentIntentId, password } = req.body;
-
+    console.log('DEBUG: PaymentIntentId:', paymentIntentId);
+    console.log('DEBUG: Password:', password); 
     if (!paymentIntentId) {
         return res.status(400).json({ message: 'PaymentIntentId is required' });
     }
