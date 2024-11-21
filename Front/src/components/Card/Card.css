@@ -1,0 +1,4 @@
+.card-background {
+    background: linear-gradient(115deg, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.40) 35%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0.40) 75%, rgba(255, 255, 255, 0.40) 100%);
+    border-radius: 10px;
+}
