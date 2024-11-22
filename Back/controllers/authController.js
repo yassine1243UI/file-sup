@@ -167,14 +167,17 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid password' });
         }
 
-        // Check payment status
-        const [invoices] = await db.query(
-            'SELECT status FROM invoices WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
-            [user.id]
-        );
+        // Skip payment check if user is an admin
+        if (user.role !== 'admin') {
+            // Check payment status
+            const [invoices] = await db.query(
+                'SELECT status FROM invoices WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
+                [user.id]
+            );
 
-        if (!invoices.length || invoices[0].status !== 'paid') {
-            return res.status(403).json({ message: 'Access denied. Please complete your payment.' });
+            if (!invoices.length || invoices[0].status !== 'paid') {
+                return res.status(403).json({ message: 'Access denied. Please complete your payment.' });
+            }
         }
 
         // Generate token if all checks pass
@@ -186,6 +189,7 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Error during login process', error: error.message });
     }
 };
+
 
 
 exports.deleteAccount = async (req, res) => {
