@@ -298,3 +298,33 @@ exports.deleteAccount = async (req, res) => {
         res.status(500).json({ message: 'Error deleting account. No changes were made.', error: error.message });
     }
 };
+
+
+exports.increaseStorage = async (req, res) => {
+    const userId = req.user.user_id; // Get the user ID from the token
+    const additionalStorage = req.body.additionalStorage; // Additional storage from the request
+  
+    try {
+      // Fetch current storage details for the user
+      const [user] = await db.query('SELECT total_storage FROM users WHERE id = ?', [userId]);
+  
+      if (!user.length) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Increase the storage
+      const newTotalStorage = user[0].total_storage + additionalStorage;
+  
+      // Update the user's total storage
+      await db.query('UPDATE users SET total_storage = ? WHERE id = ?', [newTotalStorage, userId]);
+  
+      res.status(200).json({
+        message: 'Storage increased successfully',
+        newTotalStorage,
+      });
+    } catch (error) {
+      console.error('Error increasing storage:', error);
+      res.status(500).json({ message: 'Error increasing storage', error: error.message });
+    }
+  };
+  

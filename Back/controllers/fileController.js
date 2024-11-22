@@ -275,14 +275,14 @@ exports.getFilteredAndSortedFiles = async (req, res) => {
       }
   
       // Debug: Print the final SQL query and the query parameters
-      console.log("DEBUG: Final SQL query:", sqlQuery);
-      console.log("DEBUG: Query parameters:", queryParams);
+    //   console.log("DEBUG: Final SQL query:", sqlQuery);
+    //   console.log("DEBUG: Query parameters:", queryParams);
   
       // Execute the query with parameters
       const [files] = await db.query(sqlQuery, queryParams);
   
       // Debug: Log the files retrieved
-      console.log("DEBUG: Files retrieved:", files);
+    //   console.log("DEBUG: Files retrieved:", files);
   
       res.status(200).json({
         message: "Files retrieved successfully",

@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header/Header";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+const stripePromise = loadStripe("pk_test_51PvlpgL0QB8STWZLk81AQ7kFUrdQbGKoQZdPkE3i8oMO4bkcdSrFCQMCZ0pP0iGQ0puYrqXodDj67tl8xyspZiov00ROwen1YD");
+
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [file, setFile] = useState(null);
@@ -14,8 +18,42 @@ const Dashboard = () => {
     order: "ASC",  // Default sorting order
   });
   const [storageStats, setStorageStats] = useState(null);
+  const [additionalStorage, setAdditionalStorage] = useState(0);
   const navigate = useNavigate();
-  // Function to delete a file
+  // const stripe = useStripe();
+  // const elements = useElements();
+  // const card = elements.getElement(CardElement);
+
+  // const handleBuyMoreStorage = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.post(
+  //       'http://localhost:5000/api/payment/buy-storage',
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem('token')}`,
+  //         },
+  //       }
+  //     );
+
+  //     if (response.status === 200) {
+  //       setMessage('Storage successfully upgraded! Please proceed with payment.');
+  //       navigate('/payment', {
+  //         state: { clientSecret: response.data.clientSecret, userInfo: response.data.userInfo },
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setMessage('Error processing payment.');
+  //     console.error('Error buying storage:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  
+
+
   useEffect(() => {
     const fetchStorageStats = async () => {
       try {
@@ -184,16 +222,128 @@ const Dashboard = () => {
       }
     }
   };
-  
+  const [error, setError] = useState("");
 
+  // const handleAction = async () => {
+  //   setLoading(true);
+  //   try {
+  //     // Call the backend to create a payment intent and get clientSecret
+  //     const response = await axios.post("http://localhost:5000/api/auth/create-payment-intent", { /* user-specific data */ });
 
+  //     if (response.data.clientSecret) {
+  //       // Redirect to the payment page with clientSecret and user info
+  //       navigate("/payment", {
+  //         state: {
+  //           clientSecret: response.data.clientSecret,
+  //           userInfo: { /* user info like name, email, etc. */ },
+  //         },
+  //       });
+  //     } else {
+  //       setError("Erreur lors de la création du paiement.");
+  //     }
+  //   } catch (error) {
+  //     setError("Erreur serveur lors de la création du paiement.");
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const [invoices, setInvoices] = useState([]);
+  const handleDownloadInvoice = async (invoiceId) => {
+    console.log(`DEBUG: Attempting to download invoice with ID: ${invoiceId}`);
+    try {
+        const response = await axios.get(`http://localhost:5000/api/auth/invoice/${invoiceId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}` // Include the user's authentication token
+            },
+            responseType: 'blob',  // Important to handle binary data (file)
+        });
 
+        // Check if the response is okay before triggering the download
+        if (response.status === 200) {
+            console.log(`DEBUG: Invoice ${invoiceId} download successful`);
+
+            // Create a link element to trigger the download
+            const link = document.createElement('a');
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            link.href = url;
+            link.setAttribute('download', `invoice_${invoiceId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up the URL object
+            window.URL.revokeObjectURL(url);
+        } else {
+            console.log(`DEBUG: Failed to download invoice ${invoiceId}. Response:`, response);
+        }
+    } catch (error) {
+        console.error(`DEBUG: Error downloading invoice ${invoiceId}:`, error);
+        alert("Erreur lors du téléchargement de la facture.");
+    }
+};
+
+useEffect(() => {
+  const fetchInvoices = async () => {
+      try {
+          const response = await axios.get('http://localhost:5000/api/auth/invoices', {
+              headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`,  // Add the JWT token
+              }
+          });
+
+          if (response.status === 200) {
+              setInvoices(response.data.invoices);  // Store the invoices in the state
+          }
+      } catch (err) {
+          console.error('Error fetching invoices:', err);
+          setError('Error fetching invoices.');
+      }
+  };
+
+  fetchInvoices();  // Fetch the invoices when the component mounts
+}, []);
   return (
     <div>
       <Header />
       <button onClick={handleDeleteAccount} disabled={loading}>
         {loading ? "Deleting..." : "Delete Account"}
       </button>
+      {/* <div>
+        <input
+          type="number"
+          value={additionalStorage}
+          onChange={(e) => setAdditionalStorage(Number(e.target.value))}
+          placeholder="Enter additional storage in MB"
+        />
+         <button onClick={handleAction} disabled={loading}>
+        {loading ? 'Processing Payment...' : 'Buy Additional Storage'}
+      </button>
+      </div> */}
+      <h1>Your Invoices</h1>
+            {error && <p>{error}</p>}
+            <ul>
+                {invoices.length > 0 ? (
+                    invoices.map((invoice) => (
+                        <li key={invoice.id}>
+                            Invoice ID: {invoice.id} - Amount: {invoice.amount} - Date: {invoice.created_at}
+                        </li>
+                    ))
+                ) : (
+                    <p>No invoices found.</p>
+                )}
+            </ul>
+        {loading ? (
+            <p>Loading...</p>
+        ) : (
+            <ul>
+                {invoices.map((invoice) => (
+                    <li key={invoice.id}>
+                        <span>Invoice #{invoice.id} - {invoice.amount} €</span>
+                        <button onClick={() => handleDownloadInvoice(invoice.id)}>Download</button>
+                    </li>
+                ))}
+            </ul>
+        )}
       <h1>User Dashboard</h1>
       <h2>Your Files</h2>
 
@@ -229,6 +379,8 @@ const Dashboard = () => {
           <button type="submit" disabled={loading}>
             {loading ? "Uploading..." : "Upload"}
           </button>
+          {error && <div>{error}</div>}
+    
         </form>
       </div>
 
