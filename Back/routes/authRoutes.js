@@ -1,9 +1,10 @@
 const express = require('express');
-const { signup, login , handlePaymentSuccess, deleteAccount,getStorageStats,increaseStorage  } = require('../controllers/authController');
+const { signup, login , handlePaymentSuccess, deleteAccount,getStorageStats,increaseStorage,getUserProfile  } = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
 const { generateInvoice , getInvoicesByUserId} = require('../controllers/invoiceController');
 const router = express.Router();
 // router.delete('/delete-account', authMiddleware, deleteAccount);
+router.get('/profile', authMiddleware, getUserProfile);
 router.delete('/delete-account', (req, res, next) => {
   console.log("DEBUG: DELETE request to /delete-account");
   next();  // Proceed to the next middleware

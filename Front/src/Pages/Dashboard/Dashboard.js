@@ -27,22 +27,56 @@ const Dashboard = () => {
   const [fileToUpload, setFileToUpload] = useState(null); 
   const [uploadMessage, setUploadMessage] = useState("");
   const [userName, setUserName] = useState("");
+  const [userProfile, setUserProfile] = useState(null);
+  const [error, setError] = useState('');
+  const [storageStats, setStorageStats] = useState(null);
   const navigate = useNavigate();
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const fetchUserInfo = async () => {
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/auth/profile', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,  // Add the JWT token
+                }
+            });
+
+            if (response.status === 200) {
+                setUserProfile(response.data.profile);  // Store the user profile in the state
+            }
+        } catch (err) {
+            console.error('Error fetching user profile:', err);
+            setError('Error fetching user profile.');
+        }
+    };
+
+    fetchUserProfile();  // Fetch the user profile when the component mounts
+}, []);
+
+useEffect(() => {
+  const fetchStorageStats = async () => {
     try {
-        const response = await axios.get("http://localhost:5000/api/user/me", {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-        });
-        setUserName(response.data.name || "Utilisateur");
+      const response = await axios.get("http://localhost:5000/api/auth/storage-stats", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.status === 200) {
+        setStorageStats(response.data);
+      }
     } catch (error) {
-        console.error("Erreur de récupération des informations utilisateur", error);
+      console.error("Error fetching storage stats:", error);
+      setMessage('Failed to fetch storage stats.');
+    } finally {
+      setLoading(false);
     }
-};
+  };
 
-
+  fetchStorageStats();
+}, []);
   const fetchFiles = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/files", {
@@ -108,6 +142,17 @@ const Dashboard = () => {
         <div>
         <h2>Bonjour, {userName}</h2>
           <span>Dashboard de {userName}</span>
+          {error && <p>{error}</p>}
+            {userProfile ? (
+                <div>
+                    <p><strong>Name:</strong> {userProfile.name}</p>
+                    <p><strong>Email:</strong> {userProfile.email}</p>
+                    <p><strong>Phone:</strong> {userProfile.phone}</p>
+                    <p><strong>Billing Address:</strong> {userProfile.billing_address}</p>
+                </div>
+            ) : (
+                <p>Loading your profile...</p>
+            )}
         </div>
         <div className="dashboard-icons">
           <button
@@ -236,6 +281,19 @@ const Dashboard = () => {
 
         <div className="table">
           <h3 className="table-title">Statistiques</h3>
+          {loading ? (
+        <p>Chargement des informations de stockage...</p>
+      ) : storageStats ? (
+        <div>
+          <h2>Votre espace de stockage</h2>
+          <p><strong>Total Storage:</strong> {storageStats.totalStorage} MB</p>
+          <p><strong>Total Used:</strong> {storageStats.totalUsed} MB</p>
+          <p><strong>Remaining Storage:</strong> {storageStats.remainingStorage} MB</p>
+          <p><strong>Total Files:</strong> {storageStats.totalFiles}</p>
+        </div>
+      ) : (
+        <p>{message}</p>
+      )}
           <table>
             <tbody>
               <tr>
