@@ -84,8 +84,8 @@ const Dashboard = () => {
       });
 
       setUploadMessage("Fichier téléversé avec succès !");
-      setFiles((prevFiles) => [response.data.file, ...prevFiles]); // Ajouter le fichier téléversé
-      setFileToUpload(null); // Réinitialiser le fichier
+      setFiles((prevFiles) => [response.data.file, ...prevFiles]); 
+      setFileToUpload(null);
     } catch (error) {
       setUploadMessage("Erreur lors du téléversement du fichier.");
       console.error(error);
@@ -182,7 +182,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Bouton Téléverser */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <input
             type="file"
