@@ -53,12 +53,20 @@
   
   .login-form {
     width: 100%;
+    gap: 1rem;
+display: flex;
+flex-direction: column;
   }
   
   .login-form .mt-4 {
     margin-top: 1rem;
   }
-  
+  .login-form input {
+    width: 100%;
+    max-width: 300px; 
+    text-align: left; 
+  }
+
   .login-form .button-container {
     display: flex;
     justify-content: center;

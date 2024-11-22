@@ -1,0 +1,191 @@
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header h2 {
+    font-size: 1.75rem;
+    margin: 0;
+    font-weight: bold;
+}
+
+.dashboard-header span {
+    color: #a5b4fc;
+    font-size: 1rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.dashboard-icons {
+    display: flex;
+    gap: 25px;
+}
+
+.dashboard-icons .icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+    font-size: 1.5rem;
+    color: #a5b4fc;
+}
+
+.dashboard-icons .logout-button {
+    color: #f87171;
+}
+
+.dashboard-icons .icon-button:hover {
+    transform: scale(1.3);
+    color: white;
+}
+
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+.toolbar {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    gap: 10px;
+}
+
+.toolbar .filters {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.toolbar .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toolbar .filter-icon {
+    font-size: 1.5rem;
+    color: #a5b4fc;
+}
+
+.toolbar input,
+.toolbar select {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.toolbar input::placeholder {
+    color: #aaa;
+}
+
+.upload-button {
+    background: #4338ca;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: bold;
+    transition: background 0.3s ease-in-out, transform 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.upload-button:hover {
+    background: #5145cd;
+    transform: translateY(-3px);
+}
+
+.tables-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.table {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.table:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.table-title {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+    color: #fff;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table th,
+table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+table th {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.actions-cell button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    background: #4338ca;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+    font-size: 0.85rem;
+}
+
+.actions-cell button:hover {
+    background: #5145cd;
+}
+
+.stats-table td {
+    text-align: center;
+    font-size: 0.9rem;
+}

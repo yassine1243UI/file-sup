@@ -30,7 +30,7 @@ const Login = () => {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <h1>📂 FilesHub</h1>
+          <h1>📂 FileSup</h1>
           <p>Connectez-vous à votre compte</p>
         </div>
         <form onSubmit={handleSubmit} className="login-form space-y-4">
