@@ -33,6 +33,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState([]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -135,7 +136,58 @@ useEffect(() => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+  const handleDownloadInvoice = async (invoiceId) => {
+    console.log(`DEBUG: Attempting to download invoice with ID: ${invoiceId}`);
+    try {
+        const response = await axios.get(`http://localhost:5000/api/auth/invoice/${invoiceId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}` // Include the user's authentication token
+            },
+            responseType: 'blob',  // Important to handle binary data (file)
+        });
 
+        // Check if the response is okay before triggering the download
+        if (response.status === 200) {
+            console.log(`DEBUG: Invoice ${invoiceId} download successful`);
+
+            // Create a link element to trigger the download
+            const link = document.createElement('a');
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            link.href = url;
+            link.setAttribute('download', `invoice_${invoiceId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up the URL object
+            window.URL.revokeObjectURL(url);
+        } else {
+            console.log(`DEBUG: Failed to download invoice ${invoiceId}. Response:`, response);
+        }
+    } catch (error) {
+        console.error(`DEBUG: Error downloading invoice ${invoiceId}:`, error);
+        alert("Erreur lors du téléchargement de la facture.");
+    }
+};
+  useEffect(() => {
+    const fetchInvoices = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/auth/invoices', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,  // Add the JWT token
+                }
+            });
+  
+            if (response.status === 200) {
+                setInvoices(response.data.invoices);  // Store the invoices in the state
+            }
+        } catch (err) {
+            console.error('Error fetching invoices:', err);
+            setError('Error fetching invoices.');
+        }
+    };
+  
+    fetchInvoices();  // Fetch the invoices when the component mounts
+  }, []);
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
@@ -154,6 +206,21 @@ useEffect(() => {
                 <p>Loading your profile...</p>
             )}
         </div>
+        <h1>Your Invoices</h1>
+            {error && <p>{error}</p>}
+            <ul>
+                {invoices.length > 0 ? (
+                    invoices.map((invoice) => (
+                        <li key={invoice.id}>
+                            Invoice ID: {invoice.id} - Amount: {invoice.amount} - Date: {invoice.created_at}
+                            <button onClick={() => handleDownloadInvoice(invoice.id)}>Download</button>
+                        </li>
+                    ))
+                ) : (
+                    <p>No invoices found.</p>
+                )}
+            </ul>
+
         <div className="dashboard-icons">
           <button
             onClick={() => navigate("/profile")}
