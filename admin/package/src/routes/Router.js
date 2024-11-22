@@ -22,12 +22,9 @@ const Router = [
     path: '/',
     element: <FullLayout />,
     children: [
-      { path: '/', element: <Navigate to="/dashboard" /> },
+      { path: '/', element: <Navigate to="/auth/login" /> },
       { path: '/dashboard', exact: true, element: <Dashboard /> },
       { path: '/sample-page', exact: true, element: <SamplePage /> },
-      { path: '/icons', exact: true, element: <Icons /> },
-      { path: '/ui/typography', exact: true, element: <TypographyPage /> },
-      { path: '/ui/shadow', exact: true, element: <Shadow /> },
       { path: '/user', exact: true, element: <UserPage/>},
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],
