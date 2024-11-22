@@ -32,8 +32,8 @@ exports.getAllUserFiles = async (req, res) => {
 
         const [files] = await db.query(`
             SELECT 
-                f.id, f.file_name, f.size, f.mimeType, f.created_at, 
-                u.name as user_name, u.email 
+                f.id, f.file_name, f.size, f.mimeType, f.created_at,f.user_id,
+                u.name as user_name, u.email, u.id
             FROM files f 
             JOIN users u ON f.user_id = u.id
         `);
