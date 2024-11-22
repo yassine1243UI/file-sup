@@ -11,9 +11,8 @@ const Profile = () => {
     usedStorage: 0,
     totalStorage: 0,
   });
-  const [invoices, setInvoices] = useState([]);
+  const [invoices, setInvoices] = useState([]); // Gestion des factures
   const [error, setError] = useState("");
-
   const navigate = useNavigate();
 
   const fetchUserInfo = async () => {
@@ -56,7 +55,6 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
-      {/* Header avec navigation */}
       <header className="profile-header">
         <div>
           <h2>Profil de {userInfo?.name}</h2>
@@ -80,12 +78,9 @@ const Profile = () => {
         </div>
       </header>
 
-      {/* Affichage des messages d'erreur */}
       {error && <div className="error">{error}</div>}
 
-      {/* Contenu principal : Stockage et Factures côte à côte */}
       <div className="profile-content">
-        {/* Section Stockage */}
         <div className="profile-storage">
           <h3>Stockage</h3>
           <p>
@@ -99,7 +94,6 @@ const Profile = () => {
           </button>
         </div>
 
-        {/* Section Factures */}
         <div className="profile-invoices">
           <h3>Vos Factures</h3>
           {invoices.length > 0 ? (
