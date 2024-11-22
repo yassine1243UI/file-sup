@@ -24,15 +24,29 @@ const Dashboard = () => {
     sortBy: "uploaded_at",
     order: "ASC",
   });
-
+  const [fileToUpload, setFileToUpload] = useState(null); 
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [userName, setUserName] = useState("");
   const navigate = useNavigate();
+
+  const fetchUserInfo = async () => {
+    try {
+        const response = await axios.get("http://localhost:5000/api/user/me", {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+        setUserName(response.data.name || "Utilisateur");
+    } catch (error) {
+        console.error("Erreur de récupération des informations utilisateur", error);
+    }
+};
+
 
   const fetchFiles = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/files", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         params: filter,
       });
       setFiles(response.data.files || []);
@@ -44,13 +58,37 @@ const Dashboard = () => {
   const fetchStats = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/stats", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setStats(response.data);
     } catch (error) {
       console.error("Erreur de récupération des statistiques", error);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!fileToUpload) {
+      setUploadMessage("Veuillez sélectionner un fichier à téléverser.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/files/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      setUploadMessage("Fichier téléversé avec succès !");
+      setFiles((prevFiles) => [response.data.file, ...prevFiles]); // Ajouter le fichier téléversé
+      setFileToUpload(null); // Réinitialiser le fichier
+    } catch (error) {
+      setUploadMessage("Erreur lors du téléversement du fichier.");
+      console.error(error);
     }
   };
 
@@ -68,8 +106,8 @@ const Dashboard = () => {
     <div className="dashboard-page">
       <header className="dashboard-header">
         <div>
-          <h2>Bonjour, Utilisateur</h2>
-          <span>Dashboard de l'utilisateur</span>
+        <h2>Bonjour, {userName}</h2>
+          <span>Dashboard de {userName}</span>
         </div>
         <div className="dashboard-icons">
           <button
@@ -88,6 +126,7 @@ const Dashboard = () => {
           </button>
         </div>
       </header>
+
       <div className="toolbar">
         <div className="filters">
           <div className="filter-item">
@@ -143,8 +182,27 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <button className="upload-button">Téléverser</button>
+        {/* Bouton Téléverser */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <input
+            type="file"
+            id="file-input"
+            style={{ display: "none" }}
+            onChange={(e) => setFileToUpload(e.target.files[0])}
+          />
+          <label htmlFor="file-input" className="upload-button">
+            Sélectionner un fichier
+          </label>
+          <button
+            className="upload-button"
+            onClick={handleFileUpload}
+          >
+            Téléverser
+          </button>
+        </div>
       </div>
+
+      {uploadMessage && <p>{uploadMessage}</p>}
 
       <div className="tables-container">
         <div className="table">
@@ -183,8 +241,7 @@ const Dashboard = () => {
               <tr>
                 <td>Espace utilisé</td>
                 <td>
-                  {stats.total_storage_mb.toFixed(2)} /{" "}
-                  {stats.total_storage_limit_mb.toFixed(2)} MB
+                  {stats.total_storage_mb.toFixed(2)} / {stats.total_storage_limit_mb.toFixed(2)} MB
                 </td>
               </tr>
               <tr>
@@ -194,6 +251,16 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
+        
+      </div>
+      <div className="ad-section">
+        <p>Besoin de plus d'espace ?</p>
+        <button
+          className="ad-button"
+          onClick={() => navigate("/upgrade")}
+        >
+          Augmentez votre capacité de stockage !
+        </button>
       </div>
     </div>
   );

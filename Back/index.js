@@ -7,19 +7,19 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const adminRoutes = require('./routes/adminRoutes'); 
-const paymentRoutes = require('./routes/paymentRoutes')
+const paymentRoutes = require('./routes/paymentRoutes');
+const userRoutes = require('./routes/userRoutes'); // Nouvelle route utilisateur
+
 // Configuration de l'application
 dotenv.config();
 const app = express();
 
 // Middleware
-// app.use(cors());
 app.use(cors({
     origin: 'http://localhost:3000',  // Make sure to allow the frontend's origin
     methods: ['GET', 'POST', 'DELETE'],  // Allow relevant methods
     credentials: true
-  }));
-  
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -30,9 +30,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use("/api", fileRoutes);
-// app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/payment', paymentRoutes)
+app.use('/api/payment', paymentRoutes);
+app.use('/api/user', userRoutes); // Nouvelle route pour les utilisateurs
+
 // Gestion des erreurs globales (optionnel)
 app.use((err, req, res, next) => {
     console.error('Global Error Handler:', err.stack);
