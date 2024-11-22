@@ -13,7 +13,7 @@ const RecentTransactions = () => {
       try {
         const response = await axios.get('http://localhost:5000/api/admin/userinfo', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         });
         setUsers(response.data);
@@ -38,13 +38,16 @@ const RecentTransactions = () => {
   // Calculs pourcentage total
   const totalStorageUsedBytes = users.reduce((sum, user) => sum + user.size, 0); // Total utilisé (octets)
   const totalCapacityBytes = users.reduce((sum, user) => {
-    const totalStorageGB = parseInt(user.total_storage) / 1024; // Convertir Mo en Go
+    const totalStorageGB = parseInt(user.total_storage || 0, 10) / 1024; // Convertir Mo en Go
     const extraStorageGB = user.extra_storage || 0; // En Go
-    return sum + (totalStorageGB + extraStorageGB) * 1024 ** 3; // Capacité totale en octets
+    return sum + (totalStorageGB + extraStorageGB) * 1024 ; // Capacité totale en octets
   }, 0);
 
-  const overallPercentageUsed = Math.min((totalStorageUsedBytes / totalCapacityBytes) * 100, 100); // Limité à 100 %
+  const overallPercentageUsed = totalCapacityBytes
+    ? Math.min((totalStorageUsedBytes / totalCapacityBytes) * 100, 100)
+    : 0; // Limité à 100 % et évite la division par zéro
 
+    console.log(totalCapacityBytes)
   return (
     <DashboardCard title="Aperçu global du stockage">
       <Box sx={{ textAlign: 'center', mb: 3 }}>
@@ -52,32 +55,14 @@ const RecentTransactions = () => {
           Stockage total utilisé
         </Typography>
         <Typography variant="h2" color="primary.main" fontWeight="700">
-          {(totalStorageUsedBytes / (1024 ** 3)).toFixed(2)} Go
+          {(totalStorageUsedBytes / 1024 ** 3).toFixed(2)} Go
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Capacité totale allouée : {(totalCapacityBytes / (1024 ** 3)).toFixed(2)} Go
+          Capacité totale allouée : {(totalCapacityBytes / 1024 ** 3).toFixed(2)} Go
         </Typography>
       </Box>
 
-      <Stack spacing={2} sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" fontWeight="600">
-          Progression totale de l'utilisation
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={overallPercentageUsed}
-          sx={{
-            height: 10,
-            borderRadius: 5,
-            '& .MuiLinearProgress-bar': {
-              backgroundColor: overallPercentageUsed > 75 ? 'error.main' : 'primary.main',
-            },
-          }}
-        />
-        <Typography variant="body2" textAlign="right" color="text.secondary">
-          {overallPercentageUsed.toFixed(2)}% du stockage total utilisé
-        </Typography>
-      </Stack>
+      
     </DashboardCard>
   );
 };
