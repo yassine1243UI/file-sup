@@ -145,8 +145,40 @@ L'équipe Filesup`;
 };
 
 
-
-
+    exports.getStorageStats = async (req, res) => {
+        const userId = req.user.user_id; // Get user ID from the authenticated request
+      
+        console.log("DEBUG: User ID:", userId);  // Log the user ID to ensure it's being correctly retrieved
+      
+        try {
+          // Query the total storage used by the user
+          const [storageData] = await db.query(
+            'SELECT SUM(size) as totalUsed FROM files WHERE user_id = ?',
+            [userId]
+          );
+      
+          console.log("DEBUG: Storage data retrieved:", storageData);  // Log the query result
+      
+          // Define the total storage limit (example: 20GB)
+          const totalStorageLimit = 20480; // in MB (20GB)
+      
+          const totalUsed = storageData[0]?.totalUsed || 0;
+          console.log("DEBUG: Total used storage:", totalUsed);  // Log the total used storage
+      
+          const remainingStorage = totalStorageLimit - totalUsed;
+          console.log("DEBUG: Remaining storage:", remainingStorage);  // Log the remaining storage
+      
+          res.status(200).json({
+            totalStorage: totalStorageLimit,
+            totalUsed,
+            remainingStorage,
+          });
+        } catch (error) {
+          console.error('Error fetching storage stats:', error);
+          res.status(500).json({ message: 'Error retrieving storage stats', error: error.message });
+        }
+      };
+      
 
 
 
@@ -193,15 +225,17 @@ exports.login = async (req, res) => {
 
 
 exports.deleteAccount = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.user_id;
+    console.log("DEBUG: Deleting account for userId:", req.user.user_id);  // Debugging line
 
     try {
         // Commencer une transaction pour garantir la cohérence des données
         await db.query('START TRANSACTION');
-
+        console.log("DEBUG: Deleting account for TEST:");
         // Récupérer les détails de l'utilisateur
         const [users] = await db.query('SELECT email, name FROM users WHERE id = ?', [userId]);
         if (!users.length) {
+            console.log("DEBUG: Deleting account for userId:", users);
             return res.status(404).json({ message: 'User not found' });
         }
         const user = users[0];
@@ -268,3 +302,33 @@ exports.deleteAccount = async (req, res) => {
         res.status(500).json({ message: 'Error deleting account. No changes were made.', error: error.message });
     }
 };
+
+
+exports.increaseStorage = async (req, res) => {
+    const userId = req.user.user_id; // Get the user ID from the token
+    const additionalStorage = req.body.additionalStorage; // Additional storage from the request
+  
+    try {
+      // Fetch current storage details for the user
+      const [user] = await db.query('SELECT total_storage FROM users WHERE id = ?', [userId]);
+  
+      if (!user.length) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Increase the storage
+      const newTotalStorage = user[0].total_storage + additionalStorage;
+  
+      // Update the user's total storage
+      await db.query('UPDATE users SET total_storage = ? WHERE id = ?', [newTotalStorage, userId]);
+  
+      res.status(200).json({
+        message: 'Storage increased successfully',
+        newTotalStorage,
+      });
+    } catch (error) {
+      console.error('Error increasing storage:', error);
+      res.status(500).json({ message: 'Error increasing storage', error: error.message });
+    }
+  };
+  

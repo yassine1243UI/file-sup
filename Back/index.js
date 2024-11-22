@@ -13,7 +13,13 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',  // Make sure to allow the frontend's origin
+    methods: ['GET', 'POST', 'DELETE'],  // Allow relevant methods
+    credentials: true
+  }));
+  
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -23,7 +29,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/files', fileRoutes);
+app.use("/api", fileRoutes);
+// app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes)
 // Gestion des erreurs globales (optionnel)
