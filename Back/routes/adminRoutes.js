@@ -8,6 +8,8 @@ const {
     getUploadStats,
     getTotalStorageUsed,
     getUserStats,
+    getMonthlyUsers,
+    getAllUsers,
     filterFiles,
     downloadFile
 } = require('../controllers/adminController');
@@ -31,8 +33,16 @@ router.get('/stats/users', authMiddleware, adminMiddleware, getUserStats);
 // View all user files
 router.get('/files', authMiddleware, adminMiddleware, getAllUserFiles);
 
+// View all user
+router.get('/userinfo', authMiddleware, adminMiddleware, getAllUsers);
+
 // View system statistics
 router.get('/stats', authMiddleware, adminMiddleware, getSystemStats);
+
+
+
+router.get('/monthlyUser', authMiddleware, adminMiddleware, getMonthlyUsers)
+
 
 // Delete a specific user file
 router.delete('/delete-user/:id', authMiddleware, adminMiddleware, deleteUser);
