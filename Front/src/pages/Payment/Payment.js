@@ -24,7 +24,6 @@ const PaymentForm = ({ clientSecret, userInfo }) => {
 
     try {
       setLoading(true);
-      // Confirm the card payment with the client secret
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: card,
@@ -38,7 +37,6 @@ const PaymentForm = ({ clientSecret, userInfo }) => {
       if (result.error) {
         setError(result.error.message);
       } else if (result.paymentIntent.status === "succeeded") {
-        // Handle post-payment success (e.g., call API to confirm, update user storage, etc.)
         alert("Paiement validé et compte activé !");
       }
     } catch (err) {

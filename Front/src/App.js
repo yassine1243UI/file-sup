@@ -7,6 +7,7 @@ import Homepage from "./Pages/HomePage/Homepage";
 import Footer from "./components/Footer/Footer";
 import Dashboard from "./Pages/Dashboard/Dashboard"
 import Profile from "./Pages/Profil/Profile";
+import Upgrade from "./Pages/Upgrade/UpgradePayment";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/upgrade" element={<Upgrade/>}/>
         <Route path="/profile" element={<Profile/>}/>
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
