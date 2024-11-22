@@ -1,15 +1,26 @@
 const express = require('express');
-const { signup, login , handlePaymentSuccess, deleteAccount  } = require('../controllers/authController');
+const { signup, login , handlePaymentSuccess, deleteAccount,getStorageStats,increaseStorage  } = require('../controllers/authController');
 const authMiddleware = require('../middleware/auth');
-const { generateInvoice } = require('../controllers/invoiceController');
+const { generateInvoice , getInvoicesByUserId} = require('../controllers/invoiceController');
 const router = express.Router();
-
+// router.delete('/delete-account', authMiddleware, deleteAccount);
+router.delete('/delete-account', (req, res, next) => {
+  console.log("DEBUG: DELETE request to /delete-account");
+  next();  // Proceed to the next middleware
+}, authMiddleware, deleteAccount);
+router.post('/increase-storage', authMiddleware, increaseStorage);
+router.get('/invoices', authMiddleware, getInvoicesByUserId);
 // Routes publiques
+router.get('/storage-stats', authMiddleware, getStorageStats);
 router.post('/signup', signup);
 router.post('/login', login);
 router.post('/payment-success', handlePaymentSuccess);
-router.delete('/delete-account', authMiddleware, deleteAccount);
+// router.delete('/delete-account', authMiddleware, deleteAccount);
 router.get('/invoice/:invoiceId', authMiddleware,  generateInvoice);
+// router.get('/invoice/:invoiceId', authMiddleware, (req, res, next) => {
+//   console.log("DEBUG: Incoming request for generating invoice");
+//   next();
+// }, generateInvoice);
 // Route protégée (exemple)
 router.get('/protected', authMiddleware, (req, res) => {
     res.status(200).json({ message: 'You have accessed a protected route!', user: req.user });
