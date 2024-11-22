@@ -39,30 +39,14 @@ const Login2 = () => {
           >
             <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '500px' }}>
               <Box display="flex" alignItems="center" justifyContent="center">
-                <Logo />
+                
               </Box>
               <AuthLogin
-                subtext={
-                  <Typography variant="subtitle1" textAlign="center" color="textSecondary" mb={1}>
-                    Your Social Campaigns
-                  </Typography>
-                }
+
                 subtitle={
                   <Stack direction="row" spacing={1} justifyContent="center" mt={3}>
-                    <Typography color="textSecondary" variant="h6" fontWeight="500">
-                      New to Modernize?
-                    </Typography>
-                    <Typography
-                      component={Link}
-                      to="/auth/register"
-                      fontWeight="500"
-                      sx={{
-                        textDecoration: 'none',
-                        color: 'primary.main',
-                      }}
-                    >
-                      Create an account
-                    </Typography>
+
+                   
                   </Stack>
                 }
               />

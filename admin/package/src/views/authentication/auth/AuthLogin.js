@@ -115,7 +115,7 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
                                 label="Remember this Device"
                             />
                         </FormGroup>
-                        <Typography
+                        {/* <Typography
                             component="a"
                             href="/forgot-password"
                             fontWeight="500"
@@ -125,7 +125,7 @@ const AuthLogin = ({ title, subtitle, subtext }) => {
                             }}
                         >
                             Forgot Password ?
-                        </Typography>
+                        </Typography> */}
                     </Stack>
                 </Stack>
                 <Box>
