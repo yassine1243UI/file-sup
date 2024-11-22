@@ -131,6 +131,4 @@ FileSup est une application web permettant de gérer l'upload, le stockage, la c
 4. Poussez votre branche : `git push origin feature/feature-name`.
 5. Soumettez une pull request.
 
-## License
 
-Ce projet est sous licence MIT.
