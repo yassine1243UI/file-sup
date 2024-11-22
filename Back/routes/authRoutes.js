@@ -3,13 +3,18 @@ const { signup, login , handlePaymentSuccess, deleteAccount,getStorageStats  } =
 const authMiddleware = require('../middleware/auth');
 const { generateInvoice } = require('../controllers/invoiceController');
 const router = express.Router();
+// router.delete('/delete-account', authMiddleware, deleteAccount);
+router.delete('/delete-account', (req, res, next) => {
+  console.log("DEBUG: DELETE request to /delete-account");
+  next();  // Proceed to the next middleware
+}, authMiddleware, deleteAccount);
 
 // Routes publiques
 router.get('/storage-stats', authMiddleware, getStorageStats);
 router.post('/signup', signup);
 router.post('/login', login);
 router.post('/payment-success', handlePaymentSuccess);
-router.delete('/delete-account', authMiddleware, deleteAccount);
+// router.delete('/delete-account', authMiddleware, deleteAccount);
 router.get('/invoice/:invoiceId', authMiddleware,  generateInvoice);
 // Route protégée (exemple)
 router.get('/protected', authMiddleware, (req, res) => {

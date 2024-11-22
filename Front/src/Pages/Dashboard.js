@@ -137,10 +137,39 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account? This action is permanent.")) {
+      setLoading(true);
+      try {
+        const response = await axios.delete("http://localhost:5000/api/auth/delete-account", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Correct token sent in headers
+          },
+        });
+        setMessage(response.data.message);
+        // Optionally redirect the user to the login or home page after deletion
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login"; // or navigate('/login');
+        }, 2000); // wait 2 seconds before redirect
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        setMessage("There was an error deleting your account.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  
+
+
 
   return (
     <div>
       <Header />
+      <button onClick={handleDeleteAccount} disabled={loading}>
+        {loading ? "Deleting..." : "Delete Account"}
+      </button>
       <h1>User Dashboard</h1>
       <h2>Your Files</h2>
 

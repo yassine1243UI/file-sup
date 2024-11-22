@@ -221,15 +221,17 @@ exports.login = async (req, res) => {
 
 
 exports.deleteAccount = async (req, res) => {
-    const { userId } = req.user;
+    const userId = req.user.user_id;
+    console.log("DEBUG: Deleting account for userId:", req.user.user_id);  // Debugging line
 
     try {
         // Commencer une transaction pour garantir la cohérence des données
         await db.query('START TRANSACTION');
-
+        console.log("DEBUG: Deleting account for TEST:");
         // Récupérer les détails de l'utilisateur
         const [users] = await db.query('SELECT email, name FROM users WHERE id = ?', [userId]);
         if (!users.length) {
+            console.log("DEBUG: Deleting account for userId:", users);
             return res.status(404).json({ message: 'User not found' });
         }
         const user = users[0];
