@@ -10,7 +10,7 @@ exports.getAllUsers = async (req, res) => {
 
         const [users] = await db.query(`
             SELECT 
-                u.id, u.name, u.email, u.role,
+                *,
                 COUNT(f.id) AS file_count,
                 COALESCE(SUM(f.size), 0) AS total_storage
             FROM users u
@@ -219,6 +219,33 @@ exports.getAllUsersWithStats = async (req, res) => {
             }
         };
         
+
+        exports.getMonthlyUsers = async (req, res) => {
+            try {
+                const formatDateForSQL = (date) => {
+                    return date.toISOString().slice(0, 19).replace('T', ' '); // "YYYY-MM-DD HH:MM:SS"
+                };
+        
+                // Calculer la date de début et de fin du mois actuel
+                const startOfMonth = formatDateForSQL(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+                const endOfMonth = formatDateForSQL(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59));
+        
+                // Requête SQL pour compter les utilisateurs créés au cours du mois
+                const [results] = await db.query(`
+                    SELECT COUNT(id) AS totalUsers
+                    FROM users
+                    WHERE created_at BETWEEN ? AND ?
+                `, [startOfMonth, endOfMonth]);
+        
+                const totalUsers = results[0].totalUsers;
+        
+                // Retourner seulement le nombre d'utilisateurs
+                res.status(200).json({ totalUsers });
+            } catch (error) {
+                console.error('Erreur lors du calcul des utilisateurs mensuels :', error);
+                res.status(500).json({ message: 'Erreur lors du calcul des utilisateurs mensuels', error: error.message });
+            }
+        };
 
 
 
