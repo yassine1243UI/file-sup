@@ -1,0 +1,109 @@
+.upgrade-page {
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  text-align: center;
+}
+
+h1, h2 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+p {
+  font-size: 1.1rem;
+  margin: 10px 0;
+  color: #d1d5db;
+}
+
+.storage-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.storage-options label {
+  font-size: 1.1rem;
+}
+
+.storage-options input {
+  width: 80px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #333;
+}
+
+.card-element {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+.confirm-button,
+.cancel-button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.3s;
+  width: 100%;
+  max-width: 300px;
+}
+
+.confirm-button {
+  background: #4338ca;
+  color: white;
+}
+
+.confirm-button:hover {
+  background: #5145cd;
+  transform: translateY(-2px);
+}
+
+.confirm-button:focus {
+  outline: 3px solid #4f46e5;
+}
+
+.cancel-button {
+  background: #f87171;
+  color: white;
+}
+
+.cancel-button:hover {
+  background: #f87180;
+  transform: translateY(-2px);
+}
+
+.cancel-button:focus {
+  outline: 3px solid #f87171;
+}
+
+.error {
+  color: #ff4d4f;
+  font-size: 1rem;
+  margin-top: 10px;
+}
+
+.loading {
+  font-size: 1.5rem;
+  color: #ffffff;
+  text-align: center;
+}
