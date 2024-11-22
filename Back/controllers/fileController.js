@@ -244,38 +244,45 @@ exports.getFilteredAndSortedFiles = async (req, res) => {
       // Debug: Print the query parameters
       console.log("DEBUG: Received query parameters:", req.query);
   
-      // Build the SQL query with filters and sorting
+      // Start the SQL query with the base WHERE condition for the user
       let sqlQuery = `
-        SELECT id, name, size, mimeType, created_at 
-        FROM files 
+        SELECT id, name, size, mimeType, created_at
+        FROM files
         WHERE user_id = ?
       `;
+      const queryParams = [userId];
   
-      // Add the filter for 'format' if provided
+      // Add the filter for 'format' if provided (using LIKE for mimeType)
       if (format) {
         sqlQuery += ` AND mimeType LIKE ?`;
+        queryParams.push(`%${format}%`);
       }
   
-      // Add the search filter if provided
+      // Add the search filter for 'name' if provided (using LIKE for file name)
       if (search) {
         sqlQuery += ` AND name LIKE ?`;
+        queryParams.push(`%${search}%`);
       }
   
       // Add sorting logic based on 'sortBy' and 'order'
-      sqlQuery += ` ORDER BY ${sortBy} ${order}`;
+      const validSortColumns = ['created_at', 'size', 'name', 'mimeType']; // Valid columns to sort by
+      const validOrderValues = ['ASC', 'DESC']; // Valid order values
+      if (validSortColumns.includes(sortBy) && validOrderValues.includes(order)) {
+        sqlQuery += ` ORDER BY ${sortBy} ${order}`;
+      } else {
+        // Default sorting if invalid parameters
+        sqlQuery += ` ORDER BY created_at DESC`;
+      }
   
-      // Debug: Print the final SQL query
+      // Debug: Print the final SQL query and the query parameters
       console.log("DEBUG: Final SQL query:", sqlQuery);
+      console.log("DEBUG: Query parameters:", queryParams);
   
       // Execute the query with parameters
-      const [files] = await db.query(sqlQuery, [
-        userId,
-        format ? `%${format}%` : undefined,  // If 'format' exists, filter by mimeType
-        search ? `%${search}%` : undefined,  // If 'search' exists, filter by file name
-      ]);
+      const [files] = await db.query(sqlQuery, queryParams);
   
       // Debug: Log the files retrieved
-    //   console.log("DEBUG: Files retrieved:", files);
+      console.log("DEBUG: Files retrieved:", files);
   
       res.status(200).json({
         message: "Files retrieved successfully",
@@ -283,7 +290,7 @@ exports.getFilteredAndSortedFiles = async (req, res) => {
       });
     } catch (error) {
       console.error("Error retrieving files:", error);
-      res.status(500).json({ message: "Error retrieving files." });
+      res.status(500).json({ message: "Error retrieving files.", error: error.message });
     }
   };
   
