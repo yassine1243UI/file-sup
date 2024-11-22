@@ -99,10 +99,34 @@ const Dashboard = () => {
   };
 
   // Function to download a file
-  const handleDownload = (fileId) => {
-    const url = `http://localhost:5000/api/files/download/${fileId}`;
-    window.open(url, "_blank");  // Open the file in a new tab
+  const handleDownload = async (fileId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/files/download/${fileId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`  // Ensure token is passed if needed
+        },
+      });
+  
+      if (response.ok) {
+        const blob = await response.blob();  // Convert response to Blob
+        const url = window.URL.createObjectURL(blob);  // Create an object URL for the file
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileId;  // Use the file name if available
+        document.body.appendChild(a);
+        a.click();
+        a.remove();  // Remove the link element
+      } else {
+        throw new Error('Failed to download the file.');
+      }
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      alert('Failed to download the file.');
+    }
   };
+  
+  
 
   // Handle file upload
   const handleUpload = async (e) => {
@@ -118,7 +142,7 @@ const Dashboard = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:5000/api/files/upload", formData, {
+      const response = await axios.post("http://localhost:5000/api/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${localStorage.getItem("token")}`, // Auth token

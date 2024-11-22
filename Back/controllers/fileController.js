@@ -287,3 +287,50 @@ exports.getFilteredAndSortedFiles = async (req, res) => {
     }
   };
   
+
+
+exports.downloadFile = async (req, res) => {
+  const { fileId } = req.params;  // Get the fileId from the URL parameter
+  const userId = req.user.user_id;  // Get the user ID from the authenticated request
+
+  try {
+    console.log('DEBUG: Received request to download file with ID:', fileId);
+    console.log('DEBUG: Authenticated user ID:', userId);
+
+    // Query the database to check if the file exists and belongs to the user
+    const [result] = await db.query('SELECT * FROM files WHERE id = ? AND user_id = ?', [fileId, userId]);
+
+    // If no file found for the given user, log it and return a 404 response
+    if (result.length === 0) {
+      console.log('DEBUG: No file found for the user with ID:', userId, 'and fileId:', fileId);
+      return res.status(404).json({ message: 'File not found or access denied' });
+    }
+
+    const file = result[0];
+    console.log('DEBUG: File found:', file);
+
+    // Get the absolute path to the file
+    const filePath = path.resolve(file.path);  // Resolves the file path to absolute path
+    console.log('DEBUG: File path resolved:', filePath);
+
+    // Check if the file exists on the server
+    if (!fs.existsSync(filePath)) {
+      console.log('DEBUG: File does not exist at path:', filePath);
+      return res.status(404).json({ message: 'File not found on the server' });
+    }
+
+    // Send the file as a download
+    console.log('DEBUG: Sending file for download:', file.name);
+    res.download(filePath, file.name, (err) => {
+      if (err) {
+        console.error('DEBUG: Error downloading file:', err);
+        return res.status(500).json({ message: 'Error downloading file' });
+      } else {
+        console.log('DEBUG: File download successful:', file.name);
+      }
+    });
+  } catch (error) {
+    console.error('DEBUG: Error in downloadFile:', error);
+    return res.status(500).json({ message: 'Error processing file download', error: error.message });
+  }
+};
