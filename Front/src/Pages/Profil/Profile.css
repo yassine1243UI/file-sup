@@ -1,0 +1,123 @@
+.profile-page {
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  min-height: 100vh;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.profile-header h2 {
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.profile-header p {
+  margin: 5px 0;
+  color: #a5b4fc;
+}
+
+.profile-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.profile-icons .icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #a5b4fc;
+  transition: transform 0.3s, color 0.3s;
+}
+
+.profile-icons .icon-button:hover {
+  transform: scale(1.3);
+  color: white;
+}
+
+.profile-icons .logout-button {
+  color: #f87171;
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Stockage : 1 part, Factures : 2 parts */
+  gap: 20px;
+}
+
+.profile-storage,
+.profile-invoices {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-storage h3,
+.profile-invoices h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.upgrade-button {
+  background: #4338ca;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background 0.3s ease-in-out, transform 0.2s;
+}
+
+.upgrade-button:hover {
+  background: #5145cd;
+  transform: translateY(-3px);
+}
+
+.profile-invoices table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.profile-invoices th,
+.profile-invoices td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
+}
+
+.profile-invoices th {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-invoices tr:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.download-button {
+  background: #4338ca;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.download-button:hover {
+  background: #5145cd;
+}
