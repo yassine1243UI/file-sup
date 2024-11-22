@@ -30,8 +30,8 @@ const faqs = [
   {
     id: 'answer-1',
     question: 'Quels types de plans de stockage proposez-vous ?',
-    answer: 'Nous proposons des plans adaptés aux particuliers et aux entreprises, avec différentes capacités de stockage.',
-  },
+    answer: 'Nous proposons un plan unique : 20 Go de stockage pour seulement 20 euros par mois, idéal pour particuliers et petites entreprises.',
+  },  
   {
     id: 'answer-2',
     question: 'Comment Filesup garantit-il la sécurité de mes fichiers ?',

@@ -13,11 +13,7 @@ const upload = multer({
 
 
 exports.uploadFile = async (req, res) => {
-<<<<<<< HEAD
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
-=======
     const userId = req.user.user_id;  // Assuming userId is set in req.user via middleware
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     const file = req.file;
 
     if (!file) {
@@ -91,11 +87,7 @@ exports.uploadFile = async (req, res) => {
 // Middleware for handling file uploads
 exports.uploadMiddleware = upload.single('file');
 exports.getFiles = async (req, res) => {
-<<<<<<< HEAD
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
-=======
     const userId = req.user.user_id; // Assuming userId is set in req.user via middleware
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 
     try {
         console.log(`DEBUG: Retrieving files for user: ${userId}`);
@@ -126,11 +118,7 @@ exports.getFiles = async (req, res) => {
 };
 
 exports.getUserFiles = async (req, res) => {
-<<<<<<< HEAD
-    const { userId } = req.user;
-=======
     const userId = req.user.user_id; 
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 
     try {
         const [files] = await db.query(
@@ -145,11 +133,7 @@ exports.getUserFiles = async (req, res) => {
     }
 };
 exports.deleteFile = async (req, res) => {
-<<<<<<< HEAD
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
-=======
     const userId = req.user.user_id // Assuming userId is set in req.user via middleware
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     const { fileId } = req.params; // File ID from request parameters
 
     try {
@@ -189,11 +173,7 @@ exports.deleteFile = async (req, res) => {
     }
 };
 exports.updateFileMetadata = async (req, res) => {
-<<<<<<< HEAD
-    const { userId } = req.user; // Assuming userId is set in req.user via middleware
-=======
     const userId = req.user.user_id;  // Assuming userId is set in req.user via middleware
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
     const { fileId } = req.params; // File ID from request parameters
     const { name } = req.body; // New file name from request body
 
@@ -224,11 +204,7 @@ exports.updateFileMetadata = async (req, res) => {
 
 exports.downloadFile = async (req, res) => {
     const { fileId } = req.params;
-<<<<<<< HEAD
-    const { userId } = req.user; // Assuming userId is available in req.user from authentication middleware
-=======
     const userId = req.user.user_id;  // Assuming userId is available in req.user from authentication middleware
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 
     try {
         // Retrieve file metadata from the database
@@ -260,55 +236,6 @@ exports.downloadFile = async (req, res) => {
 };
 
 
-<<<<<<< HEAD
-
-exports.getFilteredAndSortedFiles = async (req, res) => {
-        const { userId } = req.user; // Récupérer l'utilisateur connecté via middleware
-        const { format, search, sortBy, order } = req.query; // Récupérer les paramètres de filtrage et de tri
-    
-        try {
-            // Base query
-            let query = `
-                SELECT id, file_name, name, size, mimeType, created_at 
-                FROM files 
-                WHERE user_id = ?
-            `;
-            const values = [userId];
-    
-            // Ajouter un filtre par format de fichier (mimeType)
-            if (format) {
-                query += ' AND mimeType LIKE ?';
-                values.push(`${format}%`);
-            }
-    
-            // Ajouter une recherche par nom de fichier avec LIKE %%
-            if (search) {
-                query += ' AND name LIKE ?';
-                values.push(`%${search}%`);
-            }
-    
-            // Ajouter un tri
-            if (sortBy) {
-                const validSortBy = ['created_at', 'size']; // Champs autorisés pour le tri
-                const validOrder = ['ASC', 'DESC']; // Ordre de tri valide
-    
-                if (validSortBy.includes(sortBy)) {
-                    query += ` ORDER BY ${sortBy}`;
-                    query += validOrder.includes(order) ? ` ${order}` : ' ASC';
-                }
-            }
-    
-            // Exécuter la requête SQL
-            const [files] = await db.query(query, values);
-    
-            res.status(200).json({ files });
-        } catch (error) {
-            console.error('Error fetching user files:', error);
-            res.status(500).json({ message: 'Error fetching files', error: error.message });
-        }
-    };
-    
-=======
 // In fileController.js
 
 exports.getFilteredAndSortedFiles = async (req, res) => {

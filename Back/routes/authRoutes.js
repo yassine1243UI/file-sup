@@ -26,8 +26,6 @@ router.get('/protected', authMiddleware, (req, res) => {
     res.status(200).json({ message: 'You have accessed a protected route!', user: req.user });
 });
 
-<<<<<<< HEAD
-=======
 
 // Tester la clé secrète et créer une intention de paiement
 router.get('/test-payment', async (req, res) => {
@@ -51,5 +49,4 @@ router.get('/test-payment', async (req, res) => {
 
 module.exports = router;
 
->>>>>>> 2e5465a5d6e81682ad41c143e644b9a6e6c0a175
 module.exports = router;

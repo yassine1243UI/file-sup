@@ -5,7 +5,7 @@ import Signup from "./Pages/Signup/Signup";
 import Payment from "./Pages/Payment/Payment"
 import Homepage from "./Pages/HomePage/Homepage";
 import Footer from "./components/Footer/Footer";
-import Dashboard from "./Pages/Dashboard"
+import Dashboard from "./Pages/Dashboard/Dashboard"
 
 const App = () => {
   return (
